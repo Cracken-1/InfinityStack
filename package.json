@@ -18,8 +18,8 @@
   },
   "dependencies": {
     "next": "15.0.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "react": "19.0.0-rc-65a56d0e-20241020",
+    "react-dom": "19.0.0-rc-65a56d0e-20241020",
     "@supabase/supabase-js": "^2.39.0",
     "@supabase/ssr": "^0.1.0",
     "zustand": "^4.4.7",
@@ -42,8 +42,8 @@
   "devDependencies": {
     "typescript": "^5.3.2",
     "@types/node": "^20.9.0",
-    "@types/react": "^18.2.37",
-    "@types/react-dom": "^18.2.15",
+    "@types/react": "npm:types-react@rc",
+    "@types/react-dom": "npm:types-react-dom@rc",
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.5",
     "eslint": "^8.54.0",
