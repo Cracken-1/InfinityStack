@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { Search, Globe, BarChart3, Shield, Zap, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
-import { WebsiteAnalyzer } from '@/lib/website-analyzer'
 import { AnalysisResults, AnalysisStatus } from '@/types'
 
 export default function WebsiteAnalyzerPage() {
