@@ -168,7 +168,7 @@ export class WebsiteAnalyzer {
   }
 
   private extractProductsEnhanced(html: string) {
-    const products = []
+    const products: { name: string; price: string }[] = []
     
     // Look for product patterns
     const productPatterns = [
