@@ -90,6 +90,19 @@ export interface BusinessModelAnalysis {
   revenue: string[]
   products: any[]
   pricing: any
+  content?: {
+    headings: { level: number; text: string }[]
+    links: { url: string; text: string }[]
+    images: { src: string; alt: string }[]
+    forms: { action: string; method: string; inputs: number }[]
+    socialMedia: string[]
+    contactInfo: {
+      emails: string[]
+      phones: string[]
+      hasContactForm: boolean
+    }
+  }
+  confidence?: number
 }
 
 export interface TechnicalAnalysis {
