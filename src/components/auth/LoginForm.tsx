@@ -44,13 +44,11 @@ export default function LoginForm() {
     setError('')
 
     try {
-      // First check if user exists in our system
       const userProfile = await getUserProfile(email)
       if (!userProfile) {
         throw new Error('User not found. Please request access first.')
       }
 
-      // Sign in with Supabase Auth
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -58,11 +56,9 @@ export default function LoginForm() {
 
       if (error) throw error
 
-      // Route based on user type
       if (userProfile.type === 'platform') {
         router.push('/superadmin')
       } else {
-        // Set tenant context for RLS
         await supabase.rpc('set_config', {
           setting_name: 'app.current_tenant_id',
           setting_value: userProfile.user.tenant_id,
