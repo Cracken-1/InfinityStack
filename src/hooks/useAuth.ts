@@ -19,7 +19,7 @@ export function useAuth() {
   useEffect(() => {
     checkUser()
     
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: any, session: any) => {
       if (session?.user) {
         await loadUserProfile(session.user.email!)
       } else {

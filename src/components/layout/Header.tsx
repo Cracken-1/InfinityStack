@@ -14,7 +14,7 @@ export default function Header() {
   useEffect(() => {
     checkUser()
     
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: any, session: any) => {
       if (session?.user) {
         const profile = await getUserProfile(session.user.email!)
         setUserProfile(profile)

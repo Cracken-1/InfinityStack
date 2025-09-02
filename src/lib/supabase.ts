@@ -4,7 +4,29 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-export const supabase = createClientComponentClient()
+// Check if Supabase is properly configured
+const isSupabaseConfigured = supabaseUrl && supabaseUrl !== 'https://placeholder.supabase.co' && supabaseAnonKey && supabaseAnonKey !== 'placeholder_anon_key'
+
+// Create a mock client for development/demo purposes
+const mockSupabaseClient = {
+  auth: {
+    signInWithOAuth: () => Promise.resolve({ error: new Error('Supabase not configured') }),
+    signInWithPassword: () => Promise.resolve({ error: new Error('Supabase not configured') }),
+    signUp: () => Promise.resolve({ error: new Error('Supabase not configured') }),
+    signOut: () => Promise.resolve({ error: null }),
+    getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+    onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+    exchangeCodeForSession: () => Promise.resolve({ error: new Error('Supabase not configured') })
+  },
+  from: () => ({
+    select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: null, error: null }) }) }),
+    insert: () => Promise.resolve({ data: null, error: null }),
+    update: () => ({ eq: () => Promise.resolve({ data: null, error: null }) }),
+    delete: () => ({ eq: () => Promise.resolve({ data: null, error: null }) })
+  })
+}
+
+export const supabase = isSupabaseConfigured ? createClientComponentClient() : mockSupabaseClient as any
 
 // Server-side client with service role
 export const supabaseAdmin = createClient(
