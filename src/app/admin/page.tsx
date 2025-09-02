@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { 
@@ -18,7 +18,7 @@ import {
 } from 'lucide-react'
 import WebsiteAnalyzerWidget from '@/components/admin/WebsiteAnalyzerWidget'
 
-export default function AdminDashboard() {
+function AdminDashboardContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const [showDashboardCreated, setShowDashboardCreated] = useState(false)
@@ -257,5 +257,13 @@ export default function AdminDashboard() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function AdminDashboard() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
+      <AdminDashboardContent />
+    </Suspense>
   )
 }
