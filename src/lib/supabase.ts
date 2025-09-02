@@ -1,7 +1,13 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder_key'
+
+// Debug logging
+if (typeof window !== 'undefined') {
+  console.log('Supabase URL:', supabaseUrl)
+  console.log('Supabase Key length:', supabaseAnonKey?.length)
+}
 
 // Check if Supabase is properly configured
 const isSupabaseConfigured = supabaseUrl && 
@@ -56,16 +62,39 @@ const mockSupabaseClient = {
   rpc: () => Promise.resolve({ data: null, error: null })
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Use conditional client creation with error handling
+let supabaseClient: any
+try {
+  if (supabaseUrl && supabaseAnonKey && supabaseUrl !== 'https://placeholder.supabase.co' && supabaseAnonKey !== 'placeholder_key') {
+    supabaseClient = createClient(supabaseUrl, supabaseAnonKey)
+  } else {
+    supabaseClient = mockSupabaseClient
+  }
+} catch (error) {
+  console.error('Supabase client creation failed:', error)
+  supabaseClient = mockSupabaseClient
+}
+
+export const supabase = supabaseClient
 
 // Always export the configured status for components to check
 export const isConfigured = isSupabaseConfigured
 
 // Server-side client with service role
-export const supabaseAdmin = createClient(
-  supabaseUrl,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+let supabaseAdminClient: any
+try {
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (supabaseUrl && serviceRoleKey && supabaseUrl !== 'https://placeholder.supabase.co') {
+    supabaseAdminClient = createClient(supabaseUrl, serviceRoleKey)
+  } else {
+    supabaseAdminClient = mockSupabaseClient
+  }
+} catch (error) {
+  console.error('Supabase admin client creation failed:', error)
+  supabaseAdminClient = mockSupabaseClient
+}
+
+export const supabaseAdmin = supabaseAdminClient
 
 // Export createClient for API routes
 export { createClient }
