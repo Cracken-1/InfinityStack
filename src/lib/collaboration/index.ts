@@ -212,7 +212,7 @@ export const collaboration = new CollaborationEngine()
 export function subscribeToCollaboration(sessionId: string, onEvent: (event: CollaborationEvent) => void) {
   return supabaseAdmin
     .channel(`collaboration:${sessionId}`)
-    .on('broadcast', { event: 'collaboration_event' }, ({ payload }) => {
+    .on('broadcast', { event: 'collaboration_event' }, ({ payload }: { payload: any }) => {
       onEvent(payload as CollaborationEvent)
     })
     .subscribe()
