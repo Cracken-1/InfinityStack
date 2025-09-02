@@ -11,20 +11,15 @@ export default function LoginForm() {
   const [error, setError] = useState('')
   const router = useRouter()
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleLogin = () => {
     setLoading(true)
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`
-        }
-      })
-      if (error) throw error
-    } catch (error: any) {
-      setError(error.message)
-      setLoading(false)
-    }
+    const googleAuthUrl = `https://accounts.google.com/oauth/authorize?` +
+      `client_id=${process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}&` +
+      `redirect_uri=${encodeURIComponent(window.location.origin + '/auth/google/callback')}&` +
+      `response_type=code&` +
+      `scope=openid email profile`
+    
+    window.location.href = googleAuthUrl
   }
 
   const handleMicrosoftLogin = async () => {
