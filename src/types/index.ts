@@ -103,6 +103,23 @@ export interface BusinessModelAnalysis {
     }
   }
   confidence?: number
+  marketAnalysis?: {
+    brandStrength: number
+    marketFocus: string
+    competitiveKeywords: string[]
+    positioning: string
+  }
+  competitiveAdvantage?: {
+    advantages: string[]
+    uniqueSellingPoints: string[]
+    marketDifferentiators: string[]
+  }
+  businessIntel?: {
+    targetAudience: string[]
+    valueProposition: string
+    marketSize: string
+    growthIndicators: string[]
+  }
 }
 
 export interface TechnicalAnalysis {
@@ -125,6 +142,7 @@ export interface Recommendation {
   title: string
   description: string
   impact: string
+  dashboardWidget?: string
 }
 
 // Dashboard Types

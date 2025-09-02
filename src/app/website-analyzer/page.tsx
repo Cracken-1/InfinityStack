@@ -112,34 +112,108 @@ export default function WebsiteAnalyzerPage() {
         {/* Results */}
         {results && (
           <div className="space-y-8">
-            {/* Overview Cards */}
-            <div className="grid md:grid-cols-4 gap-6">
+            {/* Enhanced Overview Cards */}
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="card text-center">
                 <BarChart3 className="h-8 w-8 text-primary-600 mx-auto mb-3" />
                 <h3 className="font-semibold text-gray-900">Business Model</h3>
                 <p className="text-sm text-gray-600 capitalize">{results.businessModel.type.toLowerCase()}</p>
+                {results.businessModel.confidence && (
+                  <div className="mt-2">
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="bg-primary-600 h-2 rounded-full" style={{ width: `${results.businessModel.confidence}%` }}></div>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">{results.businessModel.confidence}% confidence</p>
+                  </div>
+                )}
               </div>
               
               <div className="card text-center">
                 <Zap className="h-8 w-8 text-primary-600 mx-auto mb-3" />
-                <h3 className="font-semibold text-gray-900">Tech Stack</h3>
-                <p className="text-sm text-gray-600">{results.technical.stack.length} technologies</p>
+                <h3 className="font-semibold text-gray-900">Market Position</h3>
+                <p className="text-sm text-gray-600">
+                  {results.businessModel.marketAnalysis?.positioning || 'Analyzing...'}
+                </p>
+                {results.businessModel.marketAnalysis?.brandStrength && (
+                  <div className="mt-2">
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="bg-green-600 h-2 rounded-full" style={{ width: `${results.businessModel.marketAnalysis.brandStrength}%` }}></div>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">Brand Strength</p>
+                  </div>
+                )}
               </div>
               
               <div className="card text-center">
                 <Shield className="h-8 w-8 text-primary-600 mx-auto mb-3" />
-                <h3 className="font-semibold text-gray-900">Security</h3>
+                <h3 className="font-semibold text-gray-900">Competitive Edge</h3>
                 <p className="text-sm text-gray-600">
-                  {results.technical.security.https ? 'HTTPS Enabled' : 'HTTPS Missing'}
+                  {results.businessModel.competitiveAdvantage?.advantages.length || 0} advantages
                 </p>
               </div>
               
               <div className="card text-center">
                 <Search className="h-8 w-8 text-primary-600 mx-auto mb-3" />
-                <h3 className="font-semibold text-gray-900">SEO</h3>
+                <h3 className="font-semibold text-gray-900">Revenue Streams</h3>
                 <p className="text-sm text-gray-600">
-                  {results.technical.seo.metaDescription ? 'Optimized' : 'Needs Work'}
+                  {results.businessModel.revenue.length} identified
                 </p>
+              </div>
+            </div>
+
+            {/* Business Intelligence Dashboard */}
+            <div className="card">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-semibold text-gray-900">Business Intelligence Report</h3>
+                <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                  AI-Powered Analysis
+                </span>
+              </div>
+              
+              <div className="grid lg:grid-cols-3 gap-6">
+                {/* Market Analysis */}
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-3">Market Analysis</h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Market Size</span>
+                      <span className="font-medium">{results.businessModel.businessIntel?.marketSize || 'Unknown'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Focus</span>
+                      <span className="font-medium">{results.businessModel.marketAnalysis?.marketFocus || 'General'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Value Prop</span>
+                      <span className="font-medium text-sm">{results.businessModel.businessIntel?.valueProposition || 'Not Clear'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Target Audience */}
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-3">Target Audience</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {results.businessModel.businessIntel?.targetAudience?.map((audience, index) => (
+                      <span key={index} className="px-2 py-1 bg-purple-100 text-purple-800 rounded text-sm">
+                        {audience}
+                      </span>
+                    )) || <span className="text-gray-500 text-sm">Not identified</span>}
+                  </div>
+                </div>
+
+                {/* Growth Indicators */}
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-3">Growth Signals</h4>
+                  <div className="space-y-1">
+                    {results.businessModel.businessIntel?.growthIndicators?.map((indicator, index) => (
+                      <div key={index} className="flex items-center text-sm">
+                        <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                        {indicator}
+                      </div>
+                    )) || <span className="text-gray-500 text-sm">No clear indicators</span>}
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -336,43 +410,86 @@ export default function WebsiteAnalyzerPage() {
               </div>
             )}
 
-            {/* Recommendations */}
+            {/* Enhanced Recommendations with Dashboard Widgets */}
             {results.recommendations.length > 0 && (
               <div className="card">
-                <h3 className="text-xl font-semibold mb-4">Recommendations</h3>
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-semibold text-gray-900">Strategic Recommendations</h3>
+                  <span className="text-sm text-gray-500">{results.recommendations.length} opportunities identified</span>
+                </div>
                 <div className="space-y-4">
                   {results.recommendations.map((rec, index) => (
-                    <div key={index} className="border-l-4 border-primary-500 pl-4">
-                      <div className="flex items-center justify-between mb-1">
+                    <div key={index} className={`border-l-4 pl-4 ${
+                      rec.priority === 'HIGH' ? 'border-red-500 bg-red-50' :
+                      rec.priority === 'MEDIUM' ? 'border-yellow-500 bg-yellow-50' :
+                      'border-green-500 bg-green-50'
+                    } p-4 rounded-r-lg`}>
+                      <div className="flex items-center justify-between mb-2">
                         <h4 className="font-medium text-gray-900">{rec.title}</h4>
-                        <span className={`px-2 py-1 rounded text-xs font-medium ${
-                          rec.priority === 'HIGH' ? 'bg-red-100 text-red-800' :
-                          rec.priority === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-green-100 text-green-800'
-                        }`}>
-                          {rec.priority}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${
+                            rec.priority === 'HIGH' ? 'bg-red-100 text-red-800' :
+                            rec.priority === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-green-100 text-green-800'
+                          }`}>
+                            {rec.priority} PRIORITY
+                          </span>
+                          <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
+                            {rec.category}
+                          </span>
+                        </div>
                       </div>
-                      <p className="text-gray-600 text-sm mb-1">{rec.description}</p>
-                      <p className="text-primary-600 text-sm font-medium">{rec.impact}</p>
+                      <p className="text-gray-700 text-sm mb-2">{rec.description}</p>
+                      <div className="flex justify-between items-center">
+                        <p className="text-primary-600 text-sm font-medium">{rec.impact}</p>
+                        {rec.dashboardWidget && (
+                          <button className="px-3 py-1 bg-primary-600 text-white rounded text-xs hover:bg-primary-700">
+                            Add {rec.dashboardWidget} to Dashboard
+                          </button>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* CTA */}
-            <div className="text-center py-8">
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                Ready to Optimize Your Business?
-              </h3>
-              <p className="text-gray-600 mb-6">
-                Get a custom InfinityStack dashboard based on this analysis
+            {/* Dashboard Customization CTA */}
+            <div className="bg-gradient-to-r from-primary-600 to-blue-600 rounded-xl p-8 text-white text-center">
+              <h3 className="text-2xl font-bold mb-4">Ready to Transform Your Business?</h3>
+              <p className="text-primary-100 mb-6 max-w-2xl mx-auto">
+                Get a custom InfinityStack dashboard with real-time analytics, competitor tracking, 
+                and AI-powered insights based on this comprehensive analysis.
               </p>
-              <Link href="/admin" className="btn-primary">
-                Create Custom Dashboard
-              </Link>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link href="/admin" className="bg-white text-primary-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100">
+                  Create Custom Dashboard
+                </Link>
+                <button className="border border-white text-white px-6 py-3 rounded-lg font-semibold hover:bg-white hover:text-primary-600">
+                  Schedule Strategy Call
+                </button>
+              </div>
+              <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                <div>
+                  <div className="font-semibold">Real-time Analytics</div>
+                  <div className="text-primary-200">Live performance tracking</div>
+                </div>
+                <div>
+                  <div className="font-semibold">Competitor Monitoring</div>
+                  <div className="text-primary-200">Stay ahead of competition</div>
+                </div>
+                <div>
+                  <div className="font-semibold">AI Recommendations</div>
+                  <div className="text-primary-200">Smart business insights</div>
+                </div>
+                <div>
+                  <div className="font-semibold">Custom Widgets</div>
+                  <div className="text-primary-200">Tailored to your business</div>
+                </div>
+              </div>
             </div>
+
+
           </div>
         )}
       </div>

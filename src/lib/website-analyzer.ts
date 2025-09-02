@@ -49,37 +49,175 @@ export class WebsiteAnalyzer {
     const description = doc.querySelector('meta[name="description"]')?.getAttribute() || ''
     const content = this.extractContent(html)
     
-    // Enhanced business model detection
-    let type: 'ECOMMERCE' | 'SAAS' | 'MARKETPLACE' | 'CONTENT' = 'CONTENT'
-    let confidence = 0
+    // Enhanced business model detection with market analysis
+    const businessIntel = this.analyzeBusinessIntelligence(html, title, description)
+    const marketAnalysis = this.analyzeMarketPosition(html, title)
+    const competitiveAdvantage = this.identifyCompetitiveAdvantage(html, content)
     
-    const ecommerceKeywords = ['add to cart', 'shop', 'product', 'buy now', 'checkout', 'shopping cart']
-    const saasKeywords = ['pricing', 'subscription', 'free trial', 'dashboard', 'api', 'plans']
-    const marketplaceKeywords = ['marketplace', 'vendors', 'sellers', 'buy and sell', 'commission']
-    
-    const ecommerceScore = ecommerceKeywords.filter(k => html.toLowerCase().includes(k)).length
-    const saasScore = saasKeywords.filter(k => html.toLowerCase().includes(k)).length
-    const marketplaceScore = marketplaceKeywords.filter(k => html.toLowerCase().includes(k)).length
-    
-    if (ecommerceScore > saasScore && ecommerceScore > marketplaceScore) {
-      type = 'ECOMMERCE'
-      confidence = Math.min(ecommerceScore * 20, 100)
-    } else if (saasScore > marketplaceScore) {
-      type = 'SAAS'
-      confidence = Math.min(saasScore * 20, 100)
-    } else if (marketplaceScore > 0) {
-      type = 'MARKETPLACE'
-      confidence = Math.min(marketplaceScore * 20, 100)
-    }
-
     return {
-      type,
-      revenue: this.detectRevenueStreams(html),
+      type: businessIntel.type,
+      revenue: businessIntel.revenueStreams,
       products: this.extractProductsEnhanced(html),
       pricing: this.analyzePricing(doc, html),
       content,
-      confidence
+      confidence: businessIntel.confidence,
+      marketAnalysis,
+      competitiveAdvantage,
+      businessIntel: {
+        targetAudience: businessIntel.targetAudience,
+        valueProposition: businessIntel.valueProposition,
+        marketSize: businessIntel.marketSize,
+        growthIndicators: businessIntel.growthIndicators
+      }
     }
+  }
+
+  private analyzeBusinessIntelligence(html: string, title: string, description: string) {
+    const text = (html + title + description).toLowerCase()
+    
+    // Business model detection with higher accuracy
+    const patterns = {
+      ecommerce: ['shop', 'cart', 'buy', 'product', 'store', 'checkout', 'payment', 'shipping'],
+      saas: ['software', 'platform', 'dashboard', 'api', 'subscription', 'cloud', 'service'],
+      marketplace: ['marketplace', 'vendors', 'sellers', 'commission', 'listing', 'directory'],
+      content: ['blog', 'news', 'article', 'content', 'media', 'publishing']
+    }
+    
+    const scores = Object.entries(patterns).map(([type, keywords]) => ({
+      type: type.toUpperCase() as 'ECOMMERCE' | 'SAAS' | 'MARKETPLACE' | 'CONTENT',
+      score: keywords.filter(k => text.includes(k)).length
+    }))
+    
+    const topType = scores.reduce((a, b) => a.score > b.score ? a : b)
+    
+    return {
+      type: topType.type,
+      confidence: Math.min(topType.score * 15, 100),
+      revenueStreams: this.detectAdvancedRevenueStreams(text),
+      targetAudience: this.identifyTargetAudience(text),
+      valueProposition: this.extractValueProposition(title, description),
+      marketSize: this.estimateMarketSize(text),
+      growthIndicators: this.detectGrowthIndicators(text)
+    }
+  }
+
+  private analyzeMarketPosition(html: string, title: string) {
+    const text = (html + title).toLowerCase()
+    
+    const brandStrength = this.calculateBrandStrength(text, title)
+    const marketFocus = this.identifyMarketFocus(text)
+    const competitiveKeywords = this.extractCompetitiveKeywords(text)
+    
+    return {
+      brandStrength,
+      marketFocus,
+      competitiveKeywords,
+      positioning: this.determinePositioning(brandStrength, marketFocus)
+    }
+  }
+
+  private identifyCompetitiveAdvantage(html: string, content: any) {
+    const text = html.toLowerCase()
+    
+    const advantages = []
+    if (text.includes('award') || text.includes('winner')) advantages.push('Industry Recognition')
+    if (text.includes('patent') || text.includes('proprietary')) advantages.push('Intellectual Property')
+    if (text.includes('24/7') || text.includes('support')) advantages.push('Customer Support')
+    if (content.socialMedia?.length > 3) advantages.push('Strong Social Presence')
+    if (text.includes('guarantee') || text.includes('warranty')) advantages.push('Quality Assurance')
+    
+    return {
+      advantages,
+      uniqueSellingPoints: this.extractUSPs(text),
+      marketDifferentiators: this.identifyDifferentiators(text)
+    }
+  }
+
+  private detectAdvancedRevenueStreams(text: string): string[] {
+    const streams = []
+    if (text.includes('subscription') || text.includes('monthly')) streams.push('Subscription Revenue')
+    if (text.includes('advertising') || text.includes('ads')) streams.push('Advertising Revenue')
+    if (text.includes('commission') || text.includes('fee')) streams.push('Transaction Fees')
+    if (text.includes('license') || text.includes('licensing')) streams.push('Licensing Revenue')
+    if (text.includes('affiliate') || text.includes('partner')) streams.push('Affiliate Revenue')
+    if (text.includes('premium') || text.includes('pro')) streams.push('Premium Features')
+    return streams.length > 0 ? streams : ['Direct Sales']
+  }
+
+  private identifyTargetAudience(text: string): string[] {
+    const audiences = []
+    if (text.includes('business') || text.includes('enterprise')) audiences.push('Businesses')
+    if (text.includes('consumer') || text.includes('personal')) audiences.push('Consumers')
+    if (text.includes('developer') || text.includes('api')) audiences.push('Developers')
+    if (text.includes('startup') || text.includes('entrepreneur')) audiences.push('Startups')
+    return audiences.length > 0 ? audiences : ['General Market']
+  }
+
+  private extractValueProposition(title: string, description: string): string {
+    const combined = (title + ' ' + description).toLowerCase()
+    if (combined.includes('fast') || combined.includes('quick')) return 'Speed & Efficiency'
+    if (combined.includes('easy') || combined.includes('simple')) return 'Ease of Use'
+    if (combined.includes('secure') || combined.includes('safe')) return 'Security & Trust'
+    if (combined.includes('affordable') || combined.includes('cheap')) return 'Cost Effectiveness'
+    return 'Quality Solution'
+  }
+
+  private estimateMarketSize(text: string): string {
+    if (text.includes('global') || text.includes('worldwide')) return 'Global'
+    if (text.includes('national') || text.includes('country')) return 'National'
+    if (text.includes('local') || text.includes('city')) return 'Local'
+    return 'Regional'
+  }
+
+  private detectGrowthIndicators(text: string): string[] {
+    const indicators = []
+    if (text.includes('growing') || text.includes('expansion')) indicators.push('Market Expansion')
+    if (text.includes('new') || text.includes('launch')) indicators.push('Product Innovation')
+    if (text.includes('partner') || text.includes('collaboration')) indicators.push('Strategic Partnerships')
+    return indicators
+  }
+
+  private calculateBrandStrength(text: string, title: string): number {
+    let score = 0
+    if (text.includes('award') || text.includes('certified')) score += 30
+    if (text.includes('trusted') || text.includes('reliable')) score += 20
+    if (title.length > 0 && title.length < 50) score += 25
+    if (text.includes('since') || text.includes('established')) score += 25
+    return Math.min(score, 100)
+  }
+
+  private identifyMarketFocus(text: string): string {
+    if (text.includes('niche') || text.includes('specialized')) return 'Niche Market'
+    if (text.includes('mass') || text.includes('everyone')) return 'Mass Market'
+    return 'Targeted Market'
+  }
+
+  private extractCompetitiveKeywords(text: string): string[] {
+    const keywords = []
+    const matches = text.match(/\b(best|top|leading|premier|ultimate|advanced|professional)\b/g) || []
+    return Array.from(new Set(matches)).slice(0, 5)
+  }
+
+  private determinePositioning(brandStrength: number, marketFocus: string): string {
+    if (brandStrength > 70) return 'Market Leader'
+    if (brandStrength > 40) return 'Established Player'
+    return 'Emerging Brand'
+  }
+
+  private extractUSPs(text: string): string[] {
+    const usps = []
+    if (text.includes('only') || text.includes('exclusive')) usps.push('Exclusive Offering')
+    if (text.includes('first') || text.includes('pioneer')) usps.push('Market Pioneer')
+    if (text.includes('fastest') || text.includes('quickest')) usps.push('Speed Advantage')
+    return usps
+  }
+
+  private identifyDifferentiators(text: string): string[] {
+    const diff = []
+    if (text.includes('custom') || text.includes('personalized')) diff.push('Customization')
+    if (text.includes('integration') || text.includes('connect')) diff.push('Integration Capabilities')
+    if (text.includes('scalable') || text.includes('flexible')) diff.push('Scalability')
+    return diff
   }
 
   private async analyzeTechnical(doc: any, response: Response): Promise<TechnicalAnalysis> {
