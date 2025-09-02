@@ -107,11 +107,11 @@ export default function SignupForm() {
       <div className="flex items-center justify-center py-12">
         <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-md">
           <h2 className="text-2xl font-bold text-center mb-6">Request Access</h2>
-      <p className="text-gray-600 text-center mb-6">
-        Get started with InfinityStack for your business
-      </p>
+          <p className="text-gray-600 text-center mb-6">
+            Get started with InfinityStack for your business
+          </p>
       
-      <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Company Name *
@@ -214,13 +214,15 @@ export default function SignupForm() {
         </button>
       </form>
 
-      <div className="mt-6 text-center">
-        <p className="text-sm text-gray-600">
-          Already have access?{' '}
-          <a href="/login" className="text-blue-600 hover:underline">
-            Sign In
-          </a>
-        </p>
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600">
+              Already have access?{' '}
+              <a href="/login" className="text-blue-600 hover:underline">
+                Sign In
+              </a>
+            </p>
+          </div>
+          </form>
         </div>
       </div>
     </div>
