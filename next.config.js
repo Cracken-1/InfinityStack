@@ -1,14 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  serverExternalPackages: ['@supabase/supabase-js'],
   experimental: {
-    serverComponentsExternalPackages: ['@supabase/supabase-js'],
     optimizeCss: true,
     optimizeServerReact: true
   },
   compress: true,
   poweredByHeader: false,
   generateEtags: false,
-  swcMinify: true,
   images: {
     domains: ['localhost', 'supabase.co'],
     remotePatterns: [
