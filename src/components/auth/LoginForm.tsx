@@ -180,6 +180,10 @@ export default function LoginForm() {
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
               Don't have access?{' '}
+              <a href="/register" className="text-blue-600 hover:underline">
+                Register
+              </a>
+              {' or '}
               <a href="/signup" className="text-blue-600 hover:underline">
                 Request Access
               </a>
