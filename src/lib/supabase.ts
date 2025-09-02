@@ -5,7 +5,12 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 // Check if Supabase is properly configured
-const isSupabaseConfigured = supabaseUrl && supabaseUrl !== 'https://placeholder.supabase.co' && supabaseAnonKey && supabaseAnonKey !== 'placeholder_anon_key'
+const isSupabaseConfigured = supabaseUrl && 
+  supabaseUrl !== 'https://placeholder.supabase.co' && 
+  supabaseAnonKey && 
+  supabaseAnonKey !== 'placeholder_anon_key' &&
+  supabaseUrl.startsWith('https://') &&
+  supabaseAnonKey.length > 20
 
 // Create a mock client for development/demo purposes
 const mockSupabaseClient = {
@@ -19,14 +24,36 @@ const mockSupabaseClient = {
     exchangeCodeForSession: () => Promise.resolve({ error: new Error('Supabase not configured') })
   },
   from: () => ({
-    select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: null, error: null }) }) }),
-    insert: () => Promise.resolve({ data: null, error: null }),
-    update: () => ({ eq: () => Promise.resolve({ data: null, error: null }) }),
-    delete: () => ({ eq: () => Promise.resolve({ data: null, error: null }) })
-  })
+    select: () => ({
+      eq: () => ({
+        single: () => Promise.resolve({ data: null, error: null }),
+        order: () => ({
+          limit: () => Promise.resolve({ data: [], error: null })
+        })
+      })
+    }),
+    insert: () => ({
+      select: () => ({
+        single: () => Promise.resolve({ data: null, error: null })
+      })
+    }),
+    update: () => ({
+      eq: () => ({
+        select: () => ({
+          single: () => Promise.resolve({ data: null, error: null })
+        })
+      })
+    }),
+    delete: () => ({ eq: () => Promise.resolve({ data: null, error: null }) }),
+    upsert: () => Promise.resolve({ data: null, error: null })
+  }),
+  rpc: () => Promise.resolve({ data: null, error: null })
 }
 
 export const supabase = isSupabaseConfigured ? createClientComponentClient() : mockSupabaseClient as any
+
+// Always export the configured status for components to check
+export const isConfigured = isSupabaseConfigured
 
 // Server-side client with service role
 export const supabaseAdmin = createClient(
