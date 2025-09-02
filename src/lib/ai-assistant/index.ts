@@ -55,9 +55,9 @@ class AIAssistant {
       .limit(10)
 
     return {
-      revenue: metrics?.find(m => m.metric_type === 'revenue')?.value || 0,
-      orders: metrics?.find(m => m.metric_type === 'orders')?.value || 0,
-      customers: metrics?.find(m => m.metric_type === 'customers')?.value || 0,
+      revenue: metrics?.find((m: any) => m.metric_type === 'revenue')?.value || 0,
+      orders: metrics?.find((m: any) => m.metric_type === 'orders')?.value || 0,
+      customers: metrics?.find((m: any) => m.metric_type === 'customers')?.value || 0,
       trends: this.calculateTrends(metrics || [])
     }
   }
@@ -102,10 +102,10 @@ class AIAssistant {
 
   private calculateTrends(metrics: any[]): Record<string, number> {
     const trends: Record<string, number> = {}
-    const metricTypes = Array.from(new Set(metrics.map(m => m.metric_type)))
+    const metricTypes = Array.from(new Set(metrics.map((m: any) => m.metric_type)))
     
     metricTypes.forEach(type => {
-      const typeMetrics = metrics.filter(m => m.metric_type === type)
+      const typeMetrics = metrics.filter((m: any) => m.metric_type === type)
       if (typeMetrics.length >= 2) {
         const latest = typeMetrics[0].value
         const previous = typeMetrics[1].value
