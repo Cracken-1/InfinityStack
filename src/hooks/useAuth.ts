@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabase, getUserProfile } from '@/lib/supabase'
+import { supabase, isConfigured } from '@/lib/supabase'
 
 export interface AuthUser {
   id: string
@@ -21,7 +21,7 @@ export function useAuth() {
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: any, session: any) => {
       if (session?.user) {
-        await loadUserProfile(session.user.email!)
+        await loadUserProfile(session.user)
       } else {
         setUser(null)
       }
@@ -32,25 +32,49 @@ export function useAuth() {
   }, [])
 
   const checkUser = async () => {
-    const { data: { session } } = await supabase.auth.getSession()
-    if (session?.user) {
-      await loadUserProfile(session.user.email!)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user) {
+        await loadUserProfile(session.user)
+      }
+    } catch (error) {
+      console.error('Auth check failed:', error)
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
-  const loadUserProfile = async (email: string) => {
-    const profile = await getUserProfile(email)
-    if (profile) {
+  const checkUserRole = async (email: string) => {
+    if (!isConfigured) return 'tenant'
+    
+    try {
+      const { data: platformUser } = await supabase
+        .from('platform_users')
+        .select('id')
+        .eq('email', email)
+        .single()
+      
+      return platformUser ? 'platform' : 'tenant'
+    } catch {
+      return 'tenant'
+    }
+  }
+
+  const loadUserProfile = async (supabaseUser: any) => {
+    try {
+      const userType = await checkUserRole(supabaseUser.email)
+      
       const authUser: AuthUser = {
-        id: profile.user.id,
-        email: profile.user.email,
-        type: profile.type as 'platform' | 'tenant',
-        role: profile.user.role || 'user',
-        tenantId: profile.type === 'tenant' ? profile.user.tenant_id : undefined,
-        permissions: getPermissions(profile.type, profile.user.role)
+        id: supabaseUser.id,
+        email: supabaseUser.email,
+        type: userType,
+        role: userType === 'platform' ? 'super_admin' : 'admin',
+        tenantId: userType === 'tenant' ? 'default' : undefined,
+        permissions: getPermissions(userType, userType === 'platform' ? 'super_admin' : 'admin')
       }
       setUser(authUser)
+    } catch (error) {
+      console.error('Failed to load user profile:', error)
     }
   }
 
