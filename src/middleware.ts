@@ -1,9 +1,18 @@
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next()
+  
+  // Skip Supabase middleware if not configured
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const isConfigured = supabaseUrl && supabaseUrl !== 'https://placeholder.supabase.co'
+  
+  if (!isConfigured) {
+    return res
+  }
+  
+  const { createMiddlewareClient } = await import('@supabase/auth-helpers-nextjs')
   const supabase = createMiddlewareClient({ req, res })
 
   // Refresh session if expired
