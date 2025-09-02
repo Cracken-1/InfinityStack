@@ -78,8 +78,22 @@ export default function LoginForm() {
   }
 
   return (
-    <div className="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold text-center mb-6">Sign In</h2>
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <a href="/" className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">∞</span>
+              </div>
+              <span className="text-xl font-bold text-gray-900">InfinityStack</span>
+            </a>
+          </div>
+        </div>
+      </header>
+      <div className="flex items-center justify-center py-12">
+        <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-md">
+          <h2 className="text-2xl font-bold text-center mb-6">Sign In</h2>
       
       {/* Social Login */}
       <div className="space-y-3 mb-6">
@@ -168,6 +182,7 @@ export default function LoginForm() {
             Request Access
           </a>
         </p>
+        </div>
       </div>
     </div>
   )

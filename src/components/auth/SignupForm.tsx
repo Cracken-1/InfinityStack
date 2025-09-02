@@ -58,25 +58,55 @@ export default function SignupForm() {
 
   if (success) {
     return (
-      <div className="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md text-center">
-        <div className="text-green-600 text-5xl mb-4">✓</div>
-        <h2 className="text-2xl font-bold mb-4">Request Submitted!</h2>
-        <p className="text-gray-600 mb-6">
-          Thank you for your interest in InfinityStack. We'll review your request and get back to you within 24 hours.
-        </p>
-        <a 
-          href="/login" 
-          className="text-blue-600 hover:underline"
-        >
-          Back to Login
-        </a>
+      <div className="min-h-screen bg-gray-50">
+        <header className="bg-white shadow-sm border-b">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center h-16">
+              <a href="/" className="flex items-center space-x-2">
+                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">∞</span>
+                </div>
+                <span className="text-xl font-bold text-gray-900">InfinityStack</span>
+              </a>
+            </div>
+          </div>
+        </header>
+        <div className="flex items-center justify-center py-12">
+          <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-md text-center">
+            <div className="text-green-600 text-5xl mb-4">✓</div>
+            <h2 className="text-2xl font-bold mb-4">Request Submitted!</h2>
+            <p className="text-gray-600 mb-6">
+              Thank you for your interest in InfinityStack. We'll review your request and get back to you within 24 hours.
+            </p>
+            <a 
+              href="/login" 
+              className="text-blue-600 hover:underline"
+            >
+              Back to Login
+            </a>
+          </div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold text-center mb-6">Request Access</h2>
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <a href="/" className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">∞</span>
+              </div>
+              <span className="text-xl font-bold text-gray-900">InfinityStack</span>
+            </a>
+          </div>
+        </div>
+      </header>
+      <div className="flex items-center justify-center py-12">
+        <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-md">
+          <h2 className="text-2xl font-bold text-center mb-6">Request Access</h2>
       <p className="text-gray-600 text-center mb-6">
         Get started with InfinityStack for your business
       </p>
@@ -191,6 +221,7 @@ export default function SignupForm() {
             Sign In
           </a>
         </p>
+        </div>
       </div>
     </div>
   )
