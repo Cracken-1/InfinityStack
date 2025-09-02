@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 
 export default function SecurityDashboard() {
-  const [securityEvents, setSecurityEvents] = useState([])
-  const [failedAttempts, setFailedAttempts] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [securityEvents, setSecurityEvents] = useState<any[]>([])
+  const [failedAttempts, setFailedAttempts] = useState<any[]>([])
+  const [loading, setLoading] = useState<boolean>(true)
 
   useEffect(() => {
     fetchSecurityData()

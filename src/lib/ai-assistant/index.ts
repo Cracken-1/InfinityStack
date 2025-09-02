@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase'
+import { supabaseAdmin } from '@/lib/supabase'
 import { logger } from '@/lib/logger'
 
 export interface AssistantContext {
@@ -24,7 +24,7 @@ export interface AssistantAction {
 }
 
 class AIAssistant {
-  private supabase = createClient()
+  private supabase = supabaseAdmin
 
   async getContextualHelp(context: AssistantContext): Promise<AssistantResponse> {
     try {

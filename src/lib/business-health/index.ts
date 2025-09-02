@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase'
+import { supabaseAdmin } from '@/lib/supabase'
 import { logger } from '@/lib/logger'
 
 export interface BusinessHealthScore {
@@ -26,7 +26,7 @@ export interface HealthMetric {
 }
 
 class BusinessHealthEngine {
-  private supabase = createClient()
+  private supabase = supabaseAdmin
 
   async calculateHealthScore(tenantId: string): Promise<BusinessHealthScore> {
     try {

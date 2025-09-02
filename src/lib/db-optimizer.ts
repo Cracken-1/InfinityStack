@@ -1,8 +1,8 @@
-import { createClient } from './supabase'
+import { supabaseAdmin } from './supabase'
 import { cache, withCache } from './cache'
 
 class DatabaseOptimizer {
-  private supabase = createClient()
+  private supabase = supabaseAdmin
   private batchQueue = new Map<string, any[]>()
   private batchTimeout: NodeJS.Timeout | null = null
 

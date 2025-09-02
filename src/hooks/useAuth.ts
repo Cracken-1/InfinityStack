@@ -45,7 +45,7 @@ export function useAuth() {
       const authUser: AuthUser = {
         id: profile.user.id,
         email: profile.user.email,
-        type: profile.type,
+        type: profile.type as 'platform' | 'tenant',
         role: profile.user.role || 'user',
         tenantId: profile.type === 'tenant' ? profile.user.tenant_id : undefined,
         permissions: getPermissions(profile.type, profile.user.role)

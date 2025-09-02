@@ -15,13 +15,21 @@ export async function POST(request: NextRequest) {
     }
 
     // Create analysis record
-    const analysis = await db.createAnalysis({
-      url,
-      tenant_id: tenantId || 'default',
-      status: AnalysisStatus.ANALYZING,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    })
+    const { data: analysis, error: createError } = await db
+      .from('website_analyses')
+      .insert({
+        url,
+        tenant_id: tenantId || 'default',
+        status: AnalysisStatus.ANALYZING,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single()
+    
+    if (createError || !analysis) {
+      throw new Error('Failed to create analysis record')
+    }
 
     // Perform analysis
     try {
@@ -29,11 +37,16 @@ export async function POST(request: NextRequest) {
       const results = await analyzer.analyze()
       
       // Update with results
-      const updatedAnalysis = await db.updateAnalysis(analysis.id, {
-        status: AnalysisStatus.COMPLETED,
-        results,
-        updated_at: new Date().toISOString()
-      })
+      const { data: updatedAnalysis } = await db
+        .from('website_analyses')
+        .update({
+          status: AnalysisStatus.COMPLETED,
+          results,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', analysis.id)
+        .select()
+        .single()
 
       return NextResponse.json({
         success: true,
@@ -41,10 +54,13 @@ export async function POST(request: NextRequest) {
       })
     } catch (analysisError: any) {
       // Update with error status
-      await db.updateAnalysis(analysis.id, {
-        status: AnalysisStatus.FAILED,
-        updated_at: new Date().toISOString()
-      })
+      await db
+        .from('website_analyses')
+        .update({
+          status: AnalysisStatus.FAILED,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', analysis.id)
 
       return NextResponse.json(
         { error: `Analysis failed: ${analysisError.message}` },

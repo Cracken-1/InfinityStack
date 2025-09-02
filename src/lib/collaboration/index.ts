@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase'
+import { supabaseAdmin } from '@/lib/supabase'
 import { logger } from '@/lib/logger'
 
 export interface CollaborationSession {
@@ -26,7 +26,7 @@ export interface CollaborationEvent {
 }
 
 class CollaborationEngine {
-  private supabase = createClient()
+  private supabase = supabaseAdmin
   private sessions = new Map<string, CollaborationSession>()
 
   async joinSession(tenantId: string, resourceType: string, resourceId: string, userId: string, userName: string): Promise<string> {
@@ -210,9 +210,7 @@ export const collaboration = new CollaborationEngine()
 
 // Real-time subscription helper
 export function subscribeToCollaboration(sessionId: string, onEvent: (event: CollaborationEvent) => void) {
-  const supabase = createClient()
-  
-  return supabase
+  return supabaseAdmin
     .channel(`collaboration:${sessionId}`)
     .on('broadcast', { event: 'collaboration_event' }, ({ payload }) => {
       onEvent(payload as CollaborationEvent)

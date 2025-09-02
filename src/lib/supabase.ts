@@ -12,6 +12,12 @@ export const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+// Export createClient for API routes
+export { createClient }
+
+// Export db as alias for supabaseAdmin
+export const db = supabaseAdmin
+
 // Set tenant context for RLS
 export const setTenantContext = async (tenantId: string) => {
   await supabase.rpc('set_config', {

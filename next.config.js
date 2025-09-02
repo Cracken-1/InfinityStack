@@ -1,6 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  serverExternalPackages: ['@supabase/supabase-js'],
   experimental: {
     optimizeCss: true,
     optimizeServerReact: true

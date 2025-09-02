@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { aiAssistant } from '@/lib/ai-assistant'
-import { createClient } from '@/lib/supabase'
+import { supabaseAdmin } from '@/lib/supabase'
 
 export async function POST(request: NextRequest) {
   try {
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const supabase = createClient()
+    const supabase = supabaseAdmin
     
     const { data: metrics } = await supabase
       .from('business_metrics')

@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase'
+import { supabaseAdmin } from '@/lib/supabase'
 import { logger } from '@/lib/logger'
 
 export interface WorkflowNode {
@@ -27,7 +27,7 @@ export interface Workflow {
 }
 
 class WorkflowEngine {
-  private supabase = createClient()
+  private supabase = supabaseAdmin
 
   async executeWorkflow(workflowId: string, triggerData: Record<string, any>) {
     try {

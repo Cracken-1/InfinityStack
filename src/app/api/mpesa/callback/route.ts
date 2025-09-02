@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase'
+import { supabaseAdmin } from '@/lib/supabase'
 import { logger } from '@/lib/logger'
 
 export async function POST(request: NextRequest) {
@@ -45,8 +45,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Store transaction in database
-    const supabase = createClient()
-    await supabase
+    await supabaseAdmin
       .from('mpesa_transactions')
       .upsert(transactionData, { 
         onConflict: 'checkout_request_id' 
@@ -71,8 +70,7 @@ export async function POST(request: NextRequest) {
 
 async function updateOrderStatus(checkoutRequestId: string, status: string) {
   try {
-    const supabase = createClient()
-    await supabase
+    await supabaseAdmin
       .from('orders')
       .update({ 
         payment_status: status,

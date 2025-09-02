@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase'
+import { supabaseAdmin } from '@/lib/supabase'
 import { logger } from '@/lib/logger'
 
 export interface SmartNotification {
@@ -26,7 +26,7 @@ export interface NotificationRule {
 }
 
 class SmartNotificationEngine {
-  private supabase = createClient()
+  private supabase = supabaseAdmin
 
   async processBusinessEvent(tenantId: string, eventType: string, data: Record<string, any>) {
     try {
