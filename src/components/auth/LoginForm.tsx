@@ -12,9 +12,16 @@ export default function LoginForm() {
   const router = useRouter()
 
   const handleGoogleLogin = () => {
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+    
+    if (!clientId) {
+      setError('Google OAuth not configured')
+      return
+    }
+    
     setLoading(true)
     const googleAuthUrl = `https://accounts.google.com/oauth/authorize?` +
-      `client_id=${process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}&` +
+      `client_id=${clientId}&` +
       `redirect_uri=${encodeURIComponent(window.location.origin + '/auth/google/callback')}&` +
       `response_type=code&` +
       `scope=openid email profile`
