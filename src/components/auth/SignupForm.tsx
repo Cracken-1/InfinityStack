@@ -214,6 +214,8 @@ export default function SignupForm() {
         </button>
       </form>
 
+          </form>
+
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
               Already have access?{' '}
@@ -222,7 +224,6 @@ export default function SignupForm() {
               </a>
             </p>
           </div>
-          </form>
         </div>
       </div>
     </div>
