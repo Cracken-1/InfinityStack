@@ -56,7 +56,7 @@ const mockSupabaseClient = {
   rpc: () => Promise.resolve({ data: null, error: null })
 }
 
-export const supabase = isSupabaseConfigured ? createClient(supabaseUrl, supabaseAnonKey) : mockSupabaseClient
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 // Always export the configured status for components to check
 export const isConfigured = isSupabaseConfigured
