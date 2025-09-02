@@ -1,4 +1,3 @@
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -15,11 +14,15 @@ const isSupabaseConfigured = supabaseUrl &&
 // Create a mock client for development/demo purposes
 const mockSupabaseClient = {
   auth: {
-    signInWithOAuth: () => Promise.resolve({ error: new Error('Supabase not configured') }),
-    signInWithPassword: () => Promise.resolve({ error: new Error('Supabase not configured') }),
-    signUp: () => Promise.resolve({ error: new Error('Supabase not configured') }),
+    signInWithOAuth: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') }),
+    signInWithPassword: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') }),
+    signInWithOtp: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') }),
+    signUp: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') }),
+    verifyOtp: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') }),
     signOut: () => Promise.resolve({ error: null }),
     getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+    getUser: () => Promise.resolve({ data: { user: null }, error: null }),
+    resetPasswordForEmail: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') }),
     onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
     exchangeCodeForSession: () => Promise.resolve({ error: new Error('Supabase not configured') })
   },
@@ -30,6 +33,9 @@ const mockSupabaseClient = {
         order: () => ({
           limit: () => Promise.resolve({ data: [], error: null })
         })
+      }),
+      order: () => ({
+        limit: () => Promise.resolve({ data: [], error: null })
       })
     }),
     insert: () => ({
@@ -50,14 +56,7 @@ const mockSupabaseClient = {
   rpc: () => Promise.resolve({ data: null, error: null })
 }
 
-let supabaseClient: any
-try {
-  supabaseClient = isSupabaseConfigured ? createClientComponentClient() : mockSupabaseClient
-} catch (error) {
-  supabaseClient = mockSupabaseClient
-}
-
-export const supabase = supabaseClient
+export const supabase = isSupabaseConfigured ? createClient(supabaseUrl, supabaseAnonKey) : mockSupabaseClient
 
 // Always export the configured status for components to check
 export const isConfigured = isSupabaseConfigured
