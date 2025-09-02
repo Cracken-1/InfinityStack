@@ -302,7 +302,7 @@ export class WebsiteAnalyzer {
   }
 
   private extractHeadings(html: string) {
-    const headings = []
+    const headings: { level: number; text: string }[] = []
     const h1Matches = html.match(/<h1[^>]*>([^<]*)<\/h1>/gi) || []
     const h2Matches = html.match(/<h2[^>]*>([^<]*)<\/h2>/gi) || []
     const h3Matches = html.match(/<h3[^>]*>([^<]*)<\/h3>/gi) || []
