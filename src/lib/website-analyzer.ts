@@ -378,8 +378,8 @@ export class WebsiteAnalyzer {
     const phoneMatches = html.match(/[\+]?[1-9]?[0-9]{7,15}/g) || []
     
     return {
-      emails: [...new Set(emailMatches)].slice(0, 3),
-      phones: [...new Set(phoneMatches)].slice(0, 3),
+      emails: Array.from(new Set(emailMatches)).slice(0, 3),
+      phones: Array.from(new Set(phoneMatches)).slice(0, 3),
       hasContactForm: html.includes('contact') && html.includes('form')
     }
   }
