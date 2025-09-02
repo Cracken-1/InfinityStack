@@ -40,6 +40,14 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    // Check if we have proper environment variables
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://placeholder.supabase.co') {
+      return NextResponse.json(
+        { error: 'Supabase not configured' },
+        { status: 503 }
+      )
+    }
+
     const supabase = createClient()
     
     const { data: metrics } = await supabase
