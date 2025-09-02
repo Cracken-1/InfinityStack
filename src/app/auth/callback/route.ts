@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { getUserProfile } from '@/lib/supabase'
 
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url)
+  const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
+  
+  if (!code) {
+    return NextResponse.redirect(`${origin}/login?error=no_code`)
+  }
 
-  if (code) {
+  try {
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -14,20 +17,25 @@ export async function GET(request: NextRequest) {
     
     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
     
-    if (error) {
-      return NextResponse.redirect(new URL('/login?error=auth_failed', request.url))
+    if (error || !data.user) {
+      return NextResponse.redirect(`${origin}/login?error=auth_failed`)
     }
     
-    if (data.user?.email) {
-      const userProfile = await getUserProfile(data.user.email)
-      
-      if (userProfile?.type === 'platform') {
-        return NextResponse.redirect(new URL('/superadmin', request.url))
-      } else if (userProfile?.type === 'tenant') {
-        return NextResponse.redirect(new URL('/admin', request.url))
-      }
+    // Check if platform admin
+    const { data: platformUser } = await supabase
+      .from('platform_users')
+      .select('id')
+      .eq('email', data.user.email)
+      .single()
+    
+    if (platformUser) {
+      return NextResponse.redirect(`${origin}/superadmin`)
     }
+    
+    // Default to admin for all other users
+    return NextResponse.redirect(`${origin}/admin`)
+    
+  } catch (error) {
+    return NextResponse.redirect(`${origin}/login?error=callback_failed`)
   }
-
-  return NextResponse.redirect(new URL('/login', request.url))
 }

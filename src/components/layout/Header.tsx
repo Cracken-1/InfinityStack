@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { supabase, getUserProfile } from '@/lib/supabase'
+import { supabase, isConfigured } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 
 export default function Header() {
   const [user, setUser] = useState<any>(null)
-  const [userProfile, setUserProfile] = useState<any>(null)
+  const [userRole, setUserRole] = useState<'platform' | 'tenant' | null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
 
@@ -16,12 +16,12 @@ export default function Header() {
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: any, session: any) => {
       if (session?.user) {
-        const profile = await getUserProfile(session.user.email!)
-        setUserProfile(profile)
         setUser(session.user)
+        const role = await checkUserRole(session.user.email!)
+        setUserRole(role)
       } else {
         setUser(null)
-        setUserProfile(null)
+        setUserRole(null)
       }
       setLoading(false)
     })
@@ -29,14 +29,36 @@ export default function Header() {
     return () => subscription.unsubscribe()
   }, [])
 
-  const checkUser = async () => {
-    const { data: { session } } = await supabase.auth.getSession()
-    if (session?.user) {
-      const profile = await getUserProfile(session.user.email!)
-      setUserProfile(profile)
-      setUser(session.user)
+  const checkUserRole = async (email: string) => {
+    if (!isConfigured) return 'tenant'
+    
+    try {
+      // Check platform users first
+      const { data: platformUser } = await supabase
+        .from('platform_users')
+        .select('id')
+        .eq('email', email)
+        .single()
+      
+      return platformUser ? 'platform' : 'tenant'
+    } catch {
+      return 'tenant' // Safe fallback
     }
-    setLoading(false)
+  }
+
+  const checkUser = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user) {
+        setUser(session.user)
+        const role = await checkUserRole(session.user.email!)
+        setUserRole(role)
+      }
+    } catch (error) {
+      console.error('Auth check failed:', error)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleSignOut = async () => {
@@ -45,20 +67,11 @@ export default function Header() {
   }
 
   const getDashboardLink = () => {
-    if (userProfile?.type === 'platform') {
-      return '/superadmin'
-    }
-    return '/admin'
+    return userRole === 'platform' ? '/superadmin' : '/admin'
   }
 
-  const getUserRole = () => {
-    if (userProfile?.type === 'platform') {
-      return 'Super Admin'
-    }
-    if (userProfile?.type === 'tenant') {
-      return userProfile.user.role === 'admin' ? 'Admin' : 'Staff'
-    }
-    return null
+  const getUserRoleDisplay = () => {
+    return userRole === 'platform' ? 'Super Admin' : 'Admin'
   }
 
   return (
@@ -94,8 +107,8 @@ export default function Header() {
               <div className="flex items-center space-x-4">
                 <div className="text-sm">
                   <div className="font-medium text-gray-900">{user.email}</div>
-                  {getUserRole() && (
-                    <div className="text-gray-500">{getUserRole()}</div>
+                  {userRole && (
+                    <div className="text-gray-500">{getUserRoleDisplay()}</div>
                   )}
                 </div>
                 <Link
