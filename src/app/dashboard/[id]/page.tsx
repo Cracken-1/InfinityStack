@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation'
 import { 
   BarChart3, Users, DollarSign, TrendingUp, Globe, Shield, 
   Search, Target, Award, Zap, Menu, Bell, Settings, User,
-  ChevronDown, Home, Analytics, Briefcase, MessageSquare
+  ChevronDown, Home, BarChart, Briefcase, MessageSquare
 } from 'lucide-react'
 
 interface DashboardData {
@@ -70,7 +70,7 @@ export default function CustomDashboard() {
         <nav className="p-4 space-y-2">
           {[
             { icon: Home, label: 'Overview', active: true },
-            { icon: Analytics, label: 'Analytics' },
+            { icon: BarChart, label: 'Analytics' },
             { icon: Target, label: 'Marketing' },
             { icon: Users, label: 'Customers' },
             { icon: Briefcase, label: 'Business Intel' },

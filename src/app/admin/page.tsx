@@ -1,3 +1,7 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { 
   BarChart3, 
@@ -9,12 +13,26 @@ import {
   Package,
   MapPin,
   Calendar,
-  Settings
+  Settings,
+  ExternalLink
 } from 'lucide-react'
 import WebsiteAnalyzerWidget from '@/components/admin/WebsiteAnalyzerWidget'
 
 export default function AdminDashboard() {
-  // Mock data - would come from database
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const [showDashboardCreated, setShowDashboardCreated] = useState(false)
+  
+  useEffect(() => {
+    const dashboardId = searchParams.get('dashboard')
+    if (dashboardId) {
+      setShowDashboardCreated(true)
+      setTimeout(() => {
+        router.push(`/dashboard/${dashboardId}`)
+      }, 3000)
+    }
+  }, [searchParams, router])
+
   const stats = {
     revenue: '$124,500',
     orders: '1,247',
@@ -60,6 +78,25 @@ export default function AdminDashboard() {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {showDashboardCreated && (
+          <div className="mb-8 bg-green-50 border border-green-200 rounded-lg p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <BarChart3 className="h-8 w-8 text-green-600" />
+                <div className="ml-4">
+                  <h3 className="text-lg font-semibold text-green-900">Custom Dashboard Created!</h3>
+                  <p className="text-green-700">Redirecting to your personalized dashboard...</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => router.push(`/dashboard/${searchParams.get('dashboard')}`)} 
+                className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+              >
+                View Dashboard <ExternalLink className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="card">
@@ -130,9 +167,9 @@ export default function AdminDashboard() {
                   <span className="text-sm font-medium text-gray-900">Customers</span>
                 </Link>
                 
-                <Link href="/admin/ai-insights" className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                <Link href="/website-analyzer" className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                   <BarChart3 className="h-8 w-8 text-primary-600 mb-2" />
-                  <span className="text-sm font-medium text-gray-900">AI Insights</span>
+                  <span className="text-sm font-medium text-gray-900">Website Analyzer</span>
                 </Link>
               </div>
             </div>
