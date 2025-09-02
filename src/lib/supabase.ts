@@ -50,7 +50,14 @@ const mockSupabaseClient = {
   rpc: () => Promise.resolve({ data: null, error: null })
 }
 
-export const supabase = isSupabaseConfigured ? createClientComponentClient() : mockSupabaseClient as any
+let supabaseClient: any
+try {
+  supabaseClient = isSupabaseConfigured ? createClientComponentClient() : mockSupabaseClient
+} catch (error) {
+  supabaseClient = mockSupabaseClient
+}
+
+export const supabase = supabaseClient
 
 // Always export the configured status for components to check
 export const isConfigured = isSupabaseConfigured
