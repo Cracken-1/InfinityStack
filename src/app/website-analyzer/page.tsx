@@ -186,11 +186,11 @@ export default function WebsiteAnalyzerPage() {
                     </div>
                   )}
 
-                  {results.businessModel.content?.socialMedia?.length > 0 && (
+                  {(results.businessModel.content?.socialMedia?.length ?? 0) > 0 && (
                     <div>
                       <h4 className="font-medium text-gray-900">Social Media Presence</h4>
                       <div className="flex flex-wrap gap-2 mt-1">
-                        {results.businessModel.content.socialMedia.map((platform, index) => (
+                        {results.businessModel.content?.socialMedia?.map((platform, index) => (
                           <span key={index} className="px-2 py-1 bg-green-100 text-green-800 rounded text-sm">
                             {platform}
                           </span>
@@ -264,11 +264,11 @@ export default function WebsiteAnalyzerPage() {
                 <div className="card">
                   <h3 className="text-lg font-semibold mb-4">Page Structure</h3>
                   <div className="space-y-3">
-                    {results.businessModel.content.headings?.length > 0 && (
+                    {(results.businessModel.content?.headings?.length ?? 0) > 0 && (
                       <div>
                         <h4 className="font-medium text-gray-900 text-sm">Main Headings</h4>
                         <div className="mt-1 space-y-1">
-                          {results.businessModel.content.headings.slice(0, 5).map((heading, index) => (
+                          {results.businessModel.content?.headings?.slice(0, 5).map((heading, index) => (
                             <div key={index} className="text-xs text-gray-600">
                               <span className="font-mono">H{heading.level}</span>: {heading.text.slice(0, 40)}...
                             </div>
@@ -277,10 +277,10 @@ export default function WebsiteAnalyzerPage() {
                       </div>
                     )}
                     
-                    {results.businessModel.content.forms?.length > 0 && (
+                    {(results.businessModel.content?.forms?.length ?? 0) > 0 && (
                       <div>
                         <h4 className="font-medium text-gray-900 text-sm">Forms Detected</h4>
-                        <p className="text-xs text-gray-600">{results.businessModel.content.forms.length} forms found</p>
+                        <p className="text-xs text-gray-600">{results.businessModel.content?.forms?.length ?? 0} forms found</p>
                       </div>
                     )}
                   </div>
@@ -290,18 +290,18 @@ export default function WebsiteAnalyzerPage() {
                 <div className="card">
                   <h3 className="text-lg font-semibold mb-4">Contact Information</h3>
                   <div className="space-y-3">
-                    {results.businessModel.content.contactInfo?.emails?.length > 0 && (
+                    {(results.businessModel.content?.contactInfo?.emails?.length ?? 0) > 0 && (
                       <div>
                         <h4 className="font-medium text-gray-900 text-sm">Email Addresses</h4>
                         <div className="mt-1 space-y-1">
-                          {results.businessModel.content.contactInfo.emails.map((email, index) => (
+                          {results.businessModel.content?.contactInfo?.emails?.map((email, index) => (
                             <div key={index} className="text-xs text-gray-600">{email}</div>
                           ))}
                         </div>
                       </div>
                     )}
                     
-                    {results.businessModel.content.contactInfo?.hasContactForm && (
+                    {results.businessModel.content?.contactInfo?.hasContactForm && (
                       <div>
                         <h4 className="font-medium text-gray-900 text-sm">Contact Form</h4>
                         <p className="text-xs text-green-600">✓ Contact form available</p>
@@ -314,11 +314,11 @@ export default function WebsiteAnalyzerPage() {
                 <div className="card">
                   <h3 className="text-lg font-semibold mb-4">Navigation</h3>
                   <div className="space-y-3">
-                    {results.businessModel.content.links?.length > 0 && (
+                    {(results.businessModel.content?.links?.length ?? 0) > 0 && (
                       <div>
                         <h4 className="font-medium text-gray-900 text-sm">Key Links</h4>
                         <div className="mt-1 space-y-1">
-                          {results.businessModel.content.links.slice(0, 5).map((link, index) => (
+                          {results.businessModel.content?.links?.slice(0, 5).map((link, index) => (
                             <div key={index} className="text-xs text-gray-600">
                               {link.text.slice(0, 30)}...
                             </div>
@@ -329,7 +329,7 @@ export default function WebsiteAnalyzerPage() {
                     
                     <div>
                       <h4 className="font-medium text-gray-900 text-sm">Total Links</h4>
-                      <p className="text-xs text-gray-600">{results.businessModel.content.links?.length || 0} links found</p>
+                      <p className="text-xs text-gray-600">{results.businessModel.content?.links?.length ?? 0} links found</p>
                     </div>
                   </div>
                 </div>
