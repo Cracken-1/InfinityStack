@@ -111,107 +111,313 @@ export default function WebsiteAnalyzerPage() {
 
         {/* Results */}
         {results && (
-          <div className="space-y-8">
-            {/* Enhanced Overview Cards */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="card text-center">
-                <BarChart3 className="h-8 w-8 text-primary-600 mx-auto mb-3" />
-                <h3 className="font-semibold text-gray-900">Business Model</h3>
-                <p className="text-sm text-gray-600 capitalize">{results.businessModel.type.toLowerCase()}</p>
-                {results.businessModel.confidence && (
-                  <div className="mt-2">
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-primary-600 h-2 rounded-full" style={{ width: `${results.businessModel.confidence}%` }}></div>
+          <div className="space-y-6">
+            {/* PageSpeed-style Header */}
+            <div className="bg-white rounded-lg shadow-sm border p-6">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                  <Globe className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">Website Analysis Results</h2>
+                  <p className="text-gray-600">{url}</p>
+                </div>
+              </div>
+
+              {/* Core Web Vitals Style Scores */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                {/* Business Score */}
+                <div className="text-center">
+                  <div className="relative w-20 h-20 mx-auto mb-3">
+                    <svg className="w-20 h-20 transform -rotate-90" viewBox="0 0 36 36">
+                      <path
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="#e5e7eb"
+                        strokeWidth="2"
+                      />
+                      <path
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke={results.businessModel.confidence && results.businessModel.confidence > 70 ? '#10b981' : results.businessModel.confidence && results.businessModel.confidence > 40 ? '#f59e0b' : '#ef4444'}
+                        strokeWidth="2"
+                        strokeDasharray={`${(results.businessModel.confidence || 0) * 100 / 100}, 100`}
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-lg font-bold text-gray-900">{results.businessModel.confidence || 0}</span>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">{results.businessModel.confidence}% confidence</p>
                   </div>
-                )}
-              </div>
-              
-              <div className="card text-center">
-                <Zap className="h-8 w-8 text-primary-600 mx-auto mb-3" />
-                <h3 className="font-semibold text-gray-900">Market Position</h3>
-                <p className="text-sm text-gray-600">
-                  {results.businessModel.marketAnalysis?.positioning || 'Analyzing...'}
-                </p>
-                {results.businessModel.marketAnalysis?.brandStrength && (
-                  <div className="mt-2">
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-green-600 h-2 rounded-full" style={{ width: `${results.businessModel.marketAnalysis.brandStrength}%` }}></div>
+                  <div className="text-sm font-medium text-gray-900">Business Model</div>
+                  <div className="text-xs text-gray-600 capitalize">{results.businessModel.type.toLowerCase()}</div>
+                </div>
+
+                {/* Brand Strength */}
+                <div className="text-center">
+                  <div className="relative w-20 h-20 mx-auto mb-3">
+                    <svg className="w-20 h-20 transform -rotate-90" viewBox="0 0 36 36">
+                      <path
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="#e5e7eb"
+                        strokeWidth="2"
+                      />
+                      <path
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke={results.businessModel.marketAnalysis?.brandStrength && results.businessModel.marketAnalysis.brandStrength > 70 ? '#10b981' : results.businessModel.marketAnalysis?.brandStrength && results.businessModel.marketAnalysis.brandStrength > 40 ? '#f59e0b' : '#ef4444'}
+                        strokeWidth="2"
+                        strokeDasharray={`${(results.businessModel.marketAnalysis?.brandStrength || 0) * 100 / 100}, 100`}
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-lg font-bold text-gray-900">{results.businessModel.marketAnalysis?.brandStrength || 0}</span>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">Brand Strength</p>
                   </div>
-                )}
-              </div>
-              
-              <div className="card text-center">
-                <Shield className="h-8 w-8 text-primary-600 mx-auto mb-3" />
-                <h3 className="font-semibold text-gray-900">Competitive Edge</h3>
-                <p className="text-sm text-gray-600">
-                  {results.businessModel.competitiveAdvantage?.advantages.length || 0} advantages
-                </p>
-              </div>
-              
-              <div className="card text-center">
-                <Search className="h-8 w-8 text-primary-600 mx-auto mb-3" />
-                <h3 className="font-semibold text-gray-900">Revenue Streams</h3>
-                <p className="text-sm text-gray-600">
-                  {results.businessModel.revenue.length} identified
-                </p>
+                  <div className="text-sm font-medium text-gray-900">Brand Strength</div>
+                  <div className="text-xs text-gray-600">{results.businessModel.marketAnalysis?.positioning || 'Unknown'}</div>
+                </div>
+
+                {/* SEO Score */}
+                <div className="text-center">
+                  <div className="relative w-20 h-20 mx-auto mb-3">
+                    <svg className="w-20 h-20 transform -rotate-90" viewBox="0 0 36 36">
+                      <path
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="#e5e7eb"
+                        strokeWidth="2"
+                      />
+                      <path
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke={(results.technical.seo.title && results.technical.seo.metaDescription) ? '#10b981' : results.technical.seo.title ? '#f59e0b' : '#ef4444'}
+                        strokeWidth="2"
+                        strokeDasharray={`${(results.technical.seo.title && results.technical.seo.metaDescription) ? 85 : results.technical.seo.title ? 50 : 20}, 100`}
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-lg font-bold text-gray-900">
+                        {(results.technical.seo.title && results.technical.seo.metaDescription) ? 85 : results.technical.seo.title ? 50 : 20}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="text-sm font-medium text-gray-900">SEO</div>
+                  <div className="text-xs text-gray-600">Search Optimization</div>
+                </div>
+
+                {/* Security Score */}
+                <div className="text-center">
+                  <div className="relative w-20 h-20 mx-auto mb-3">
+                    <svg className="w-20 h-20 transform -rotate-90" viewBox="0 0 36 36">
+                      <path
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="#e5e7eb"
+                        strokeWidth="2"
+                      />
+                      <path
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke={results.technical.security.https ? '#10b981' : '#ef4444'}
+                        strokeWidth="2"
+                        strokeDasharray={`${results.technical.security.https ? 90 : 30}, 100`}
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-lg font-bold text-gray-900">
+                        {results.technical.security.https ? 90 : 30}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="text-sm font-medium text-gray-900">Security</div>
+                  <div className="text-xs text-gray-600">{results.technical.security.https ? 'HTTPS Enabled' : 'Needs HTTPS'}</div>
+                </div>
               </div>
             </div>
 
-            {/* Business Intelligence Dashboard */}
-            <div className="card">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-semibold text-gray-900">Business Intelligence Report</h3>
-                <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                  AI-Powered Analysis
-                </span>
+            {/* PageSpeed-style Opportunities */}
+            <div className="bg-white rounded-lg shadow-sm border">
+              <div className="p-6 border-b">
+                <h3 className="text-lg font-semibold text-gray-900">Opportunities</h3>
+                <p className="text-sm text-gray-600 mt-1">These suggestions can help improve your business performance</p>
               </div>
-              
-              <div className="grid lg:grid-cols-3 gap-6">
-                {/* Market Analysis */}
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-3">Market Analysis</h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Market Size</span>
-                      <span className="font-medium">{results.businessModel.businessIntel?.marketSize || 'Unknown'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Focus</span>
-                      <span className="font-medium">{results.businessModel.marketAnalysis?.marketFocus || 'General'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Value Prop</span>
-                      <span className="font-medium text-sm">{results.businessModel.businessIntel?.valueProposition || 'Not Clear'}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Target Audience */}
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-3">Target Audience</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {results.businessModel.businessIntel?.targetAudience?.map((audience, index) => (
-                      <span key={index} className="px-2 py-1 bg-purple-100 text-purple-800 rounded text-sm">
-                        {audience}
-                      </span>
-                    )) || <span className="text-gray-500 text-sm">Not identified</span>}
-                  </div>
-                </div>
-
-                {/* Growth Indicators */}
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-3">Growth Signals</h4>
-                  <div className="space-y-1">
-                    {results.businessModel.businessIntel?.growthIndicators?.map((indicator, index) => (
-                      <div key={index} className="flex items-center text-sm">
-                        <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                        {indicator}
+              <div className="divide-y">
+                {results.recommendations.slice(0, 6).map((rec, index) => (
+                  <div key={index} className="p-6">
+                    <div className="flex items-start gap-4">
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-sm font-bold ${
+                        rec.priority === 'HIGH' ? 'bg-red-500' :
+                        rec.priority === 'MEDIUM' ? 'bg-yellow-500' : 'bg-blue-500'
+                      }`}>
+                        !
                       </div>
-                    )) || <span className="text-gray-500 text-sm">No clear indicators</span>}
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-900 mb-1">{rec.title}</h4>
+                        <p className="text-sm text-gray-600 mb-2">{rec.description}</p>
+                        <div className="flex items-center gap-4 text-xs">
+                          <span className={`px-2 py-1 rounded ${
+                            rec.priority === 'HIGH' ? 'bg-red-100 text-red-800' :
+                            rec.priority === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800'
+                          }`}>
+                            {rec.priority} PRIORITY
+                          </span>
+                          <span className="text-gray-500">{rec.category}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* PageSpeed-style Metrics */}
+            <div className="bg-white rounded-lg shadow-sm border">
+              <div className="p-6 border-b">
+                <h3 className="text-lg font-semibold text-gray-900">Metrics</h3>
+              </div>
+              <div className="p-6 space-y-4">
+                {/* Business Model Clarity */}
+                <div className="flex items-center justify-between py-3">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-3 h-3 rounded-full ${
+                      results.businessModel.confidence && results.businessModel.confidence > 70 ? 'bg-green-500' :
+                      results.businessModel.confidence && results.businessModel.confidence > 40 ? 'bg-yellow-500' : 'bg-red-500'
+                    }`}></div>
+                    <span className="font-medium text-gray-900">Business Model Clarity</span>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-mono text-lg font-bold text-gray-900">{results.businessModel.confidence || 0}</div>
+                    <div className="text-xs text-gray-500">Confidence Score</div>
+                  </div>
+                </div>
+
+                {/* Revenue Diversification */}
+                <div className="flex items-center justify-between py-3">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-3 h-3 rounded-full ${
+                      results.businessModel.revenue.length > 2 ? 'bg-green-500' :
+                      results.businessModel.revenue.length > 1 ? 'bg-yellow-500' : 'bg-red-500'
+                    }`}></div>
+                    <span className="font-medium text-gray-900">Revenue Diversification</span>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-mono text-lg font-bold text-gray-900">{results.businessModel.revenue.length}</div>
+                    <div className="text-xs text-gray-500">Revenue Streams</div>
+                  </div>
+                </div>
+
+                {/* Brand Strength */}
+                <div className="flex items-center justify-between py-3">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-3 h-3 rounded-full ${
+                      results.businessModel.marketAnalysis?.brandStrength && results.businessModel.marketAnalysis.brandStrength > 70 ? 'bg-green-500' :
+                      results.businessModel.marketAnalysis?.brandStrength && results.businessModel.marketAnalysis.brandStrength > 40 ? 'bg-yellow-500' : 'bg-red-500'
+                    }`}></div>
+                    <span className="font-medium text-gray-900">Brand Strength</span>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-mono text-lg font-bold text-gray-900">{results.businessModel.marketAnalysis?.brandStrength || 0}</div>
+                    <div className="text-xs text-gray-500">Trust Indicators</div>
+                  </div>
+                </div>
+
+                {/* Competitive Advantages */}
+                <div className="flex items-center justify-between py-3">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-3 h-3 rounded-full ${
+                      (results.businessModel.competitiveAdvantage?.advantages.length || 0) > 2 ? 'bg-green-500' :
+                      (results.businessModel.competitiveAdvantage?.advantages.length || 0) > 0 ? 'bg-yellow-500' : 'bg-red-500'
+                    }`}></div>
+                    <span className="font-medium text-gray-900">Competitive Advantages</span>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-mono text-lg font-bold text-gray-900">{results.businessModel.competitiveAdvantage?.advantages.length || 0}</div>
+                    <div className="text-xs text-gray-500">Identified</div>
+                  </div>
+                </div>
+
+                {/* SEO Foundation */}
+                <div className="flex items-center justify-between py-3">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-3 h-3 rounded-full ${
+                      (results.technical.seo.title && results.technical.seo.metaDescription) ? 'bg-green-500' :
+                      results.technical.seo.title ? 'bg-yellow-500' : 'bg-red-500'
+                    }`}></div>
+                    <span className="font-medium text-gray-900">SEO Foundation</span>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-mono text-lg font-bold text-gray-900">
+                      {(results.technical.seo.title && results.technical.seo.metaDescription) ? '✓' : '✗'}
+                    </div>
+                    <div className="text-xs text-gray-500">Basic Elements</div>
+                  </div>
+                </div>
+
+                {/* Security Implementation */}
+                <div className="flex items-center justify-between py-3">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-3 h-3 rounded-full ${
+                      results.technical.security.https ? 'bg-green-500' : 'bg-red-500'
+                    }`}></div>
+                    <span className="font-medium text-gray-900">Security Implementation</span>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-mono text-lg font-bold text-gray-900">
+                      {results.technical.security.https ? '✓' : '✗'}
+                    </div>
+                    <div className="text-xs text-gray-500">HTTPS Status</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Business Intelligence Summary */}
+            <div className="bg-white rounded-lg shadow-sm border">
+              <div className="p-6 border-b">
+                <h3 className="text-lg font-semibold text-gray-900">Business Intelligence Summary</h3>
+              </div>
+              <div className="p-6">
+                <div className="grid md:grid-cols-3 gap-6">
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-3">Market Position</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Market Size</span>
+                        <span className="font-medium">{results.businessModel.businessIntel?.marketSize || 'Unknown'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Focus</span>
+                        <span className="font-medium">{results.businessModel.marketAnalysis?.marketFocus || 'General'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Positioning</span>
+                        <span className="font-medium">{results.businessModel.marketAnalysis?.positioning || 'Unknown'}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-3">Target Audience</h4>
+                    <div className="flex flex-wrap gap-1">
+                      {results.businessModel.businessIntel?.targetAudience?.map((audience, index) => (
+                        <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
+                          {audience}
+                        </span>
+                      )) || <span className="text-gray-500 text-sm">Not identified</span>}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-3">Growth Indicators</h4>
+                    <div className="space-y-1">
+                      {results.businessModel.businessIntel?.growthIndicators?.map((indicator, index) => (
+                        <div key={index} className="flex items-center text-sm">
+                          <div className="w-1.5 h-1.5 bg-green-500 rounded-full mr-2"></div>
+                          {indicator}
+                        </div>
+                      )) || <span className="text-gray-500 text-sm">No indicators found</span>}
+                    </div>
                   </div>
                 </div>
               </div>
