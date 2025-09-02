@@ -3,6 +3,10 @@
 import { useState, useEffect } from 'react'
 import { supabase, isConfigured } from '@/lib/supabase'
 
+// Cache to prevent multiple DB calls
+const roleCache = new Map<string, { type: 'platform' | 'tenant', timestamp: number }>()
+const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
+
 export interface AuthUser {
   id: string
   email: string
@@ -44,7 +48,13 @@ export function useAuth() {
     }
   }
 
-  const checkUserRole = async (email: string) => {
+  const checkUserRole = async (email: string): Promise<'platform' | 'tenant'> => {
+    // Check cache first
+    const cached = roleCache.get(email)
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      return cached.type
+    }
+
     if (!isConfigured) return 'tenant'
     
     try {
@@ -54,9 +64,16 @@ export function useAuth() {
         .eq('email', email)
         .single()
       
-      return platformUser ? 'platform' : 'tenant'
+      const userType = platformUser ? 'platform' : 'tenant'
+      
+      // Cache the result
+      roleCache.set(email, { type: userType, timestamp: Date.now() })
+      
+      return userType
     } catch {
-      return 'tenant'
+      const fallbackType = 'tenant'
+      roleCache.set(email, { type: fallbackType, timestamp: Date.now() })
+      return fallbackType
     }
   }
 
@@ -75,6 +92,16 @@ export function useAuth() {
       setUser(authUser)
     } catch (error) {
       console.error('Failed to load user profile:', error)
+      // Fallback user to prevent auth failures
+      const fallbackUser: AuthUser = {
+        id: supabaseUser.id,
+        email: supabaseUser.email,
+        type: 'tenant',
+        role: 'admin',
+        tenantId: 'default',
+        permissions: getPermissions('tenant', 'admin')
+      }
+      setUser(fallbackUser)
     }
   }
 
