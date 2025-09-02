@@ -47,29 +47,38 @@ export class WebsiteAnalyzer {
   private async analyzeBusinessModel(doc: any, html: string): Promise<BusinessModelAnalysis> {
     const title = doc.title || ''
     const description = doc.querySelector('meta[name="description"]')?.getAttribute() || ''
+    const content = this.extractContent(html)
     
-    // Detect business model type
+    // Enhanced business model detection
     let type: 'ECOMMERCE' | 'SAAS' | 'MARKETPLACE' | 'CONTENT' = 'CONTENT'
+    let confidence = 0
     
-    if (html.includes('add to cart') || html.includes('shop') || html.includes('product')) {
+    const ecommerceKeywords = ['add to cart', 'shop', 'product', 'buy now', 'checkout', 'shopping cart']
+    const saasKeywords = ['pricing', 'subscription', 'free trial', 'dashboard', 'api', 'plans']
+    const marketplaceKeywords = ['marketplace', 'vendors', 'sellers', 'buy and sell', 'commission']
+    
+    const ecommerceScore = ecommerceKeywords.filter(k => html.toLowerCase().includes(k)).length
+    const saasScore = saasKeywords.filter(k => html.toLowerCase().includes(k)).length
+    const marketplaceScore = marketplaceKeywords.filter(k => html.toLowerCase().includes(k)).length
+    
+    if (ecommerceScore > saasScore && ecommerceScore > marketplaceScore) {
       type = 'ECOMMERCE'
-    } else if (html.includes('pricing') || html.includes('subscription') || html.includes('free trial')) {
+      confidence = Math.min(ecommerceScore * 20, 100)
+    } else if (saasScore > marketplaceScore) {
       type = 'SAAS'
-    } else if (html.includes('marketplace') || html.includes('vendors') || html.includes('sellers')) {
+      confidence = Math.min(saasScore * 20, 100)
+    } else if (marketplaceScore > 0) {
       type = 'MARKETPLACE'
+      confidence = Math.min(marketplaceScore * 20, 100)
     }
-
-    // Extract products/services
-    const products = this.extractProducts(doc)
-    
-    // Analyze pricing strategy
-    const pricing = this.analyzePricing(doc, html)
 
     return {
       type,
       revenue: this.detectRevenueStreams(html),
-      products,
-      pricing
+      products: this.extractProductsEnhanced(html),
+      pricing: this.analyzePricing(doc, html),
+      content,
+      confidence
     }
   }
 
@@ -158,9 +167,31 @@ export class WebsiteAnalyzer {
     return recommendations
   }
 
-  private extractProducts(doc: any) {
-    // Simplified product extraction for server-side
-    return []
+  private extractProductsEnhanced(html: string) {
+    const products = []
+    
+    // Look for product patterns
+    const productPatterns = [
+      /<div[^>]*class=["'][^"']*product[^"']*["'][^>]*>[\s\S]*?<\/div>/gi,
+      /<article[^>]*>[\s\S]*?<\/article>/gi
+    ]
+    
+    productPatterns.forEach(pattern => {
+      const matches = html.match(pattern) || []
+      matches.slice(0, 5).forEach(match => {
+        const nameMatch = match.match(/<h[1-6][^>]*>([^<]*)<\/h[1-6]>/i)
+        const priceMatch = match.match(/[\$£€]\s*[\d,]+(?:\.\d{2})?/)
+        
+        if (nameMatch) {
+          products.push({
+            name: nameMatch[1].trim(),
+            price: priceMatch ? priceMatch[0] : 'N/A'
+          })
+        }
+      })
+    })
+    
+    return products.slice(0, 10)
   }
 
   private analyzePricing(doc: any, html: string) {
@@ -253,7 +284,103 @@ export class WebsiteAnalyzer {
         const matches = html.match(new RegExp(`<${selector}[^>]*>`, 'gi')) || []
         return { length: matches.length }
       },
-      documentElement: { outerHTML: html }
+      documentElement: { outerHTML: html },
+      html
+    }
+  }
+
+  private extractContent(html: string) {
+    // Extract main content areas
+    const headings = this.extractHeadings(html)
+    const links = this.extractLinks(html)
+    const images = this.extractImages(html)
+    const forms = this.extractForms(html)
+    const socialMedia = this.extractSocialMedia(html)
+    const contactInfo = this.extractContactInfo(html)
+    
+    return { headings, links, images, forms, socialMedia, contactInfo }
+  }
+
+  private extractHeadings(html: string) {
+    const headings = []
+    const h1Matches = html.match(/<h1[^>]*>([^<]*)<\/h1>/gi) || []
+    const h2Matches = html.match(/<h2[^>]*>([^<]*)<\/h2>/gi) || []
+    const h3Matches = html.match(/<h3[^>]*>([^<]*)<\/h3>/gi) || []
+    
+    h1Matches.forEach(match => {
+      const text = match.replace(/<[^>]*>/g, '').trim()
+      if (text) headings.push({ level: 1, text })
+    })
+    h2Matches.forEach(match => {
+      const text = match.replace(/<[^>]*>/g, '').trim()
+      if (text) headings.push({ level: 2, text })
+    })
+    h3Matches.forEach(match => {
+      const text = match.replace(/<[^>]*>/g, '').trim()
+      if (text) headings.push({ level: 3, text })
+    })
+    
+    return headings.slice(0, 10)
+  }
+
+  private extractLinks(html: string) {
+    const linkMatches = html.match(/<a[^>]*href=["']([^"']*)["'][^>]*>([^<]*)<\/a>/gi) || []
+    return linkMatches.slice(0, 20).map(match => {
+      const hrefMatch = match.match(/href=["']([^"']*)["']/)
+      const textMatch = match.match(/>([^<]*)</)
+      return {
+        url: hrefMatch ? hrefMatch[1] : '',
+        text: textMatch ? textMatch[1].trim() : ''
+      }
+    }).filter(link => link.text && !link.text.includes('<'))
+  }
+
+  private extractImages(html: string) {
+    const imgMatches = html.match(/<img[^>]*>/gi) || []
+    return imgMatches.slice(0, 10).map(match => {
+      const srcMatch = match.match(/src=["']([^"']*)["']/)
+      const altMatch = match.match(/alt=["']([^"']*)["']/)
+      return {
+        src: srcMatch ? srcMatch[1] : '',
+        alt: altMatch ? altMatch[1] : ''
+      }
+    })
+  }
+
+  private extractForms(html: string) {
+    const formMatches = html.match(/<form[^>]*>[\s\S]*?<\/form>/gi) || []
+    return formMatches.map(form => {
+      const actionMatch = form.match(/action=["']([^"']*)["']/)
+      const methodMatch = form.match(/method=["']([^"']*)["']/)
+      const inputMatches = form.match(/<input[^>]*>/gi) || []
+      
+      return {
+        action: actionMatch ? actionMatch[1] : '',
+        method: methodMatch ? methodMatch[1] : 'GET',
+        inputs: inputMatches.length
+      }
+    })
+  }
+
+  private extractSocialMedia(html: string) {
+    const social = []
+    if (html.includes('facebook.com')) social.push('Facebook')
+    if (html.includes('twitter.com') || html.includes('x.com')) social.push('Twitter/X')
+    if (html.includes('instagram.com')) social.push('Instagram')
+    if (html.includes('linkedin.com')) social.push('LinkedIn')
+    if (html.includes('youtube.com')) social.push('YouTube')
+    if (html.includes('tiktok.com')) social.push('TikTok')
+    return social
+  }
+
+  private extractContactInfo(html: string) {
+    const emailMatches = html.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g) || []
+    const phoneMatches = html.match(/[\+]?[1-9]?[0-9]{7,15}/g) || []
+    
+    return {
+      emails: [...new Set(emailMatches)].slice(0, 3),
+      phones: [...new Set(phoneMatches)].slice(0, 3),
+      hasContactForm: html.includes('contact') && html.includes('form')
     }
   }
 

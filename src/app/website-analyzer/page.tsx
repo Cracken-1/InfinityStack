@@ -69,31 +69,29 @@ export default function WebsiteAnalyzerPage() {
           </p>
 
           <div className="max-w-2xl mx-auto">
-            <div className="flex gap-4">
-              <div className="flex-1 relative">
-                <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                <input
-                  type="url"
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  placeholder="Enter website URL (e.g., example.com)"
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  onKeyPress={(e) => e.key === 'Enter' && handleAnalyze()}
-                />
-              </div>
+            <div className="relative">
+              <Globe className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 z-10" />
+              <input
+                type="url"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                placeholder="Enter website URL (e.g., example.com)"
+                className="w-full pl-12 pr-32 py-4 text-lg border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent shadow-lg"
+                onKeyPress={(e) => e.key === 'Enter' && handleAnalyze()}
+              />
               <button
                 onClick={handleAnalyze}
                 disabled={!url.trim() || status === AnalysisStatus.ANALYZING}
-                className="btn-primary px-8 py-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 btn-primary px-6 py-2 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg"
               >
                 {status === AnalysisStatus.ANALYZING ? (
                   <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                     Analyzing...
                   </>
                 ) : (
                   <>
-                    <Search className="h-5 w-5 mr-2" />
+                    <Search className="h-4 w-4 mr-2" />
                     Analyze
                   </>
                 )}
@@ -153,7 +151,14 @@ export default function WebsiteAnalyzerPage() {
                 <div className="space-y-4">
                   <div>
                     <h4 className="font-medium text-gray-900">Business Model</h4>
-                    <p className="text-gray-600 capitalize">{results.businessModel.type.toLowerCase()}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-gray-600 capitalize">{results.businessModel.type.toLowerCase()}</p>
+                      {results.businessModel.confidence && (
+                        <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
+                          {results.businessModel.confidence}% confidence
+                        </span>
+                      )}
+                    </div>
                   </div>
                   
                   <div>
@@ -176,6 +181,19 @@ export default function WebsiteAnalyzerPage() {
                             <span className="text-gray-600">{product.name}</span>
                             <span className="text-gray-900">{product.price}</span>
                           </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {results.businessModel.content?.socialMedia?.length > 0 && (
+                    <div>
+                      <h4 className="font-medium text-gray-900">Social Media Presence</h4>
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {results.businessModel.content.socialMedia.map((platform, index) => (
+                          <span key={index} className="px-2 py-1 bg-green-100 text-green-800 rounded text-sm">
+                            {platform}
+                          </span>
                         ))}
                       </div>
                     </div>
@@ -217,6 +235,10 @@ export default function WebsiteAnalyzerPage() {
                         <span className="text-gray-600">H1 Tags</span>
                         <span className="text-gray-900">{results.technical.seo.headings.h1}</span>
                       </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Images</span>
+                        <span className="text-gray-900">{results.technical.seo.images.total}</span>
+                      </div>
                     </div>
                   </div>
 
@@ -234,6 +256,85 @@ export default function WebsiteAnalyzerPage() {
                 </div>
               </div>
             </div>
+
+            {/* Content Analysis */}
+            {results.businessModel.content && (
+              <div className="grid lg:grid-cols-3 gap-8">
+                {/* Page Structure */}
+                <div className="card">
+                  <h3 className="text-lg font-semibold mb-4">Page Structure</h3>
+                  <div className="space-y-3">
+                    {results.businessModel.content.headings?.length > 0 && (
+                      <div>
+                        <h4 className="font-medium text-gray-900 text-sm">Main Headings</h4>
+                        <div className="mt-1 space-y-1">
+                          {results.businessModel.content.headings.slice(0, 5).map((heading, index) => (
+                            <div key={index} className="text-xs text-gray-600">
+                              <span className="font-mono">H{heading.level}</span>: {heading.text.slice(0, 40)}...
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {results.businessModel.content.forms?.length > 0 && (
+                      <div>
+                        <h4 className="font-medium text-gray-900 text-sm">Forms Detected</h4>
+                        <p className="text-xs text-gray-600">{results.businessModel.content.forms.length} forms found</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Contact Information */}
+                <div className="card">
+                  <h3 className="text-lg font-semibold mb-4">Contact Information</h3>
+                  <div className="space-y-3">
+                    {results.businessModel.content.contactInfo?.emails?.length > 0 && (
+                      <div>
+                        <h4 className="font-medium text-gray-900 text-sm">Email Addresses</h4>
+                        <div className="mt-1 space-y-1">
+                          {results.businessModel.content.contactInfo.emails.map((email, index) => (
+                            <div key={index} className="text-xs text-gray-600">{email}</div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {results.businessModel.content.contactInfo?.hasContactForm && (
+                      <div>
+                        <h4 className="font-medium text-gray-900 text-sm">Contact Form</h4>
+                        <p className="text-xs text-green-600">✓ Contact form available</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Navigation & Links */}
+                <div className="card">
+                  <h3 className="text-lg font-semibold mb-4">Navigation</h3>
+                  <div className="space-y-3">
+                    {results.businessModel.content.links?.length > 0 && (
+                      <div>
+                        <h4 className="font-medium text-gray-900 text-sm">Key Links</h4>
+                        <div className="mt-1 space-y-1">
+                          {results.businessModel.content.links.slice(0, 5).map((link, index) => (
+                            <div key={index} className="text-xs text-gray-600">
+                              {link.text.slice(0, 30)}...
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div>
+                      <h4 className="font-medium text-gray-900 text-sm">Total Links</h4>
+                      <p className="text-xs text-gray-600">{results.businessModel.content.links?.length || 0} links found</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Recommendations */}
             {results.recommendations.length > 0 && (
