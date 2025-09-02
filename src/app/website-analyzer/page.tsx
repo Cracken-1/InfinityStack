@@ -10,6 +10,12 @@ export default function WebsiteAnalyzerPage() {
   const [status, setStatus] = useState<AnalysisStatus>(AnalysisStatus.PENDING)
   const [results, setResults] = useState<AnalysisResults | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [dashboardCreating, setDashboardCreating] = useState(false)
+  const [dashboardProgress, setDashboardProgress] = useState(0)
+  const [currentStep, setCurrentStep] = useState('')
+  const [showAuthModal, setShowAuthModal] = useState(false)
+  const [showCallModal, setShowCallModal] = useState(false)
+  const [userEmail, setUserEmail] = useState('')
 
   const handleAnalyze = async () => {
     if (!url.trim()) return
@@ -38,6 +44,75 @@ export default function WebsiteAnalyzerPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Analysis failed')
       setStatus(AnalysisStatus.FAILED)
+    }
+  }
+
+  const handleCreateDashboard = async () => {
+    if (!userEmail) {
+      setShowAuthModal(true)
+      return
+    }
+
+    setDashboardCreating(true)
+    setDashboardProgress(0)
+
+    try {
+      const response = await fetch('/api/create-dashboard', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          analysisData: results, 
+          userEmail 
+        }),
+      })
+
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create dashboard')
+      }
+
+      // Simulate progress through steps
+      for (let i = 0; i < data.steps.length; i++) {
+        setCurrentStep(data.steps[i])
+        setDashboardProgress(((i + 1) / data.steps.length) * 100)
+        await new Promise(resolve => setTimeout(resolve, 6000))
+      }
+
+      // Redirect to dashboard
+      window.location.href = `/admin?dashboard=${data.dashboardId}`
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Dashboard creation failed')
+      setDashboardCreating(false)
+    }
+  }
+
+  const handleScheduleCall = async (callData: any) => {
+    try {
+      const response = await fetch('/api/schedule-call', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...callData,
+          analysisUrl: url,
+        }),
+      })
+
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to schedule call')
+      }
+
+      // Open calendar link
+      window.open(data.calendarLink, '_blank')
+      setShowCallModal(false)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Call scheduling failed')
     }
   }
 
@@ -668,10 +743,17 @@ export default function WebsiteAnalyzerPage() {
                 and AI-powered insights based on this comprehensive analysis.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/admin" className="bg-white text-primary-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100">
-                  Create Custom Dashboard
-                </Link>
-                <button className="border border-white text-white px-6 py-3 rounded-lg font-semibold hover:bg-white hover:text-primary-600">
+                <button 
+                  onClick={handleCreateDashboard}
+                  disabled={dashboardCreating}
+                  className="bg-white text-primary-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 disabled:opacity-50"
+                >
+                  {dashboardCreating ? 'Creating Dashboard...' : 'Create Custom Dashboard'}
+                </button>
+                <button 
+                  onClick={() => setShowCallModal(true)}
+                  className="border border-white text-white px-6 py-3 rounded-lg font-semibold hover:bg-white hover:text-primary-600"
+                >
                   Schedule Strategy Call
                 </button>
               </div>
@@ -698,6 +780,163 @@ export default function WebsiteAnalyzerPage() {
 
           </div>
         )}
+
+        {/* Dashboard Creation Progress */}
+        {dashboardCreating && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+              <h3 className="text-xl font-semibold mb-4">Creating Your Custom Dashboard</h3>
+              <div className="mb-4">
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-primary-600 h-2 rounded-full transition-all duration-500"
+                    style={{ width: `${dashboardProgress}%` }}
+                  ></div>
+                </div>
+                <p className="text-sm text-gray-600 mt-2">{Math.round(dashboardProgress)}% Complete</p>
+              </div>
+              <p className="text-gray-700">{currentStep}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Authentication Modal */}
+        {showAuthModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+              <h3 className="text-xl font-semibold mb-4">Access Required</h3>
+              <p className="text-gray-600 mb-4">Please provide your email to create a custom dashboard based on your analysis.</p>
+              <input
+                type="email"
+                placeholder="Enter your email"
+                value={userEmail}
+                onChange={(e) => setUserEmail(e.target.value)}
+                className="w-full p-3 border rounded-lg mb-4"
+              />
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowAuthModal(false)}
+                  className="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    setShowAuthModal(false)
+                    handleCreateDashboard()
+                  }}
+                  disabled={!userEmail}
+                  className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
+                >
+                  Continue
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Strategy Call Modal */}
+        {showCallModal && (
+          <StrategyCallModal
+            onClose={() => setShowCallModal(false)}
+            onSchedule={handleScheduleCall}
+          />
+        )}
+      </div>
+    </div>
+  )
+}
+
+// Strategy Call Modal Component
+function StrategyCallModal({ onClose, onSchedule }: { onClose: () => void; onSchedule: (data: any) => void }) {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    company: '',
+    phone: '',
+    preferredTime: '',
+    businessGoals: ''
+  })
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    onSchedule(formData)
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-8 max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <h3 className="text-xl font-semibold mb-4">Schedule Strategy Call</h3>
+        <p className="text-gray-600 mb-6">Book a 60-minute consultation to discuss your website analysis and optimization strategy.</p>
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <input
+              type="text"
+              placeholder="Full Name *"
+              value={formData.name}
+              onChange={(e) => setFormData({...formData, name: e.target.value})}
+              className="p-3 border rounded-lg"
+              required
+            />
+            <input
+              type="email"
+              placeholder="Email *"
+              value={formData.email}
+              onChange={(e) => setFormData({...formData, email: e.target.value})}
+              className="p-3 border rounded-lg"
+              required
+            />
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <input
+              type="text"
+              placeholder="Company"
+              value={formData.company}
+              onChange={(e) => setFormData({...formData, company: e.target.value})}
+              className="p-3 border rounded-lg"
+            />
+            <input
+              type="tel"
+              placeholder="Phone"
+              value={formData.phone}
+              onChange={(e) => setFormData({...formData, phone: e.target.value})}
+              className="p-3 border rounded-lg"
+            />
+          </div>
+          
+          <input
+            type="datetime-local"
+            value={formData.preferredTime}
+            onChange={(e) => setFormData({...formData, preferredTime: e.target.value})}
+            className="w-full p-3 border rounded-lg"
+            required
+          />
+          
+          <textarea
+            placeholder="What are your main business goals? (Optional)"
+            value={formData.businessGoals}
+            onChange={(e) => setFormData({...formData, businessGoals: e.target.value})}
+            className="w-full p-3 border rounded-lg h-24 resize-none"
+          />
+          
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-3 border rounded-lg hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="flex-1 px-4 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+            >
+              Schedule Call
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   )
