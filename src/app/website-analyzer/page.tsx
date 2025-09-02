@@ -20,9 +20,20 @@ export default function WebsiteAnalyzerPage() {
     setResults(null)
 
     try {
-      const analyzer = new WebsiteAnalyzer(url)
-      const analysisResults = await analyzer.analyze()
-      
+      const response = await fetch('/api/analyze-website', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ url }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Analysis failed')
+      }
+
+      const analysisResults = await response.json()
       setResults(analysisResults)
       setStatus(AnalysisStatus.COMPLETED)
     } catch (err) {
