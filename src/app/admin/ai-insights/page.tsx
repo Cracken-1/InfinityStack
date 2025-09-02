@@ -1,3 +1,5 @@
+'use client'
+
 import Link from 'next/link'
 import { ArrowLeft, Brain, TrendingUp, DollarSign, Package } from 'lucide-react'
 import InventoryForecast from '@/components/admin/InventoryForecast'

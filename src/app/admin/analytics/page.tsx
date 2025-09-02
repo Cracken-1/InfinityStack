@@ -1,3 +1,5 @@
+'use client'
+
 import Link from 'next/link'
 import { ArrowLeft, TrendingUp, Users, ShoppingCart, DollarSign } from 'lucide-react'
 import MetricCard from '@/components/dashboard/MetricCard'
