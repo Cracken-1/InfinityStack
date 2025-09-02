@@ -15,7 +15,12 @@ export default function WebsiteAnalyzerPage() {
   const [currentStep, setCurrentStep] = useState('')
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [showCallModal, setShowCallModal] = useState(false)
+  const [showRegistrationModal, setShowRegistrationModal] = useState(false)
+  const [showAccessRequestModal, setShowAccessRequestModal] = useState(false)
   const [userEmail, setUserEmail] = useState('')
+  const [authStep, setAuthStep] = useState<'email' | 'signin' | 'register' | 'access'>('email')
+  const [userExists, setUserExists] = useState(false)
+  const [selectedTier, setSelectedTier] = useState('PROFESSIONAL')
 
   const handleAnalyze = async () => {
     if (!url.trim()) return
@@ -50,20 +55,51 @@ export default function WebsiteAnalyzerPage() {
   const handleCreateDashboard = async () => {
     if (!userEmail) {
       setShowAuthModal(true)
+      setAuthStep('email')
       return
     }
 
+    // Check if user exists and has access
+    try {
+      const userCheckResponse = await fetch('/api/auth/check-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: userEmail })
+      })
+
+      const userData = await userCheckResponse.json()
+
+      if (userData.exists) {
+        if (userData.user.hasAccess) {
+          // User exists and has access - proceed with dashboard creation
+          await createDashboard()
+        } else {
+          // User exists but no access - show access request
+          setShowAccessRequestModal(true)
+        }
+      } else {
+        // User doesn't exist - show registration
+        setShowRegistrationModal(true)
+      }
+    } catch (err) {
+      setError('Failed to verify user access')
+    }
+  }
+
+  const createDashboard = async () => {
     setDashboardCreating(true)
     setDashboardProgress(0)
 
     try {
       const response = await fetch('/api/create-dashboard', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          analysisData: results, 
+          analysisData: {
+            ...results,
+            websiteUrl: url,
+            companyName: extractCompanyName(url)
+          }, 
           userEmail 
         }),
       })
@@ -81,11 +117,43 @@ export default function WebsiteAnalyzerPage() {
         await new Promise(resolve => setTimeout(resolve, 6000))
       }
 
-      // Redirect to dashboard
-      window.location.href = `/admin?dashboard=${data.dashboardId}`
+      // Redirect to custom dashboard
+      window.location.href = `/dashboard/${data.dashboardId}`
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Dashboard creation failed')
       setDashboardCreating(false)
+    }
+  }
+
+  const extractCompanyName = (url: string): string => {
+    try {
+      const domain = url.replace(/^https?:\/\//, '').split('/')[0]
+      const name = domain.split('.')[0]
+      return name.charAt(0).toUpperCase() + name.slice(1)
+    } catch {
+      return 'Your Company'
+    }
+  }
+
+  const handleEmailSubmit = async () => {
+    try {
+      const response = await fetch('/api/auth/check-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: userEmail })
+      })
+
+      const data = await response.json()
+
+      if (data.exists) {
+        setUserExists(true)
+        setAuthStep('signin')
+      } else {
+        setUserExists(false)
+        setAuthStep('register')
+      }
+    } catch (err) {
+      setError('Failed to check user status')
     }
   }
 
@@ -804,32 +872,106 @@ export default function WebsiteAnalyzerPage() {
         {showAuthModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4">
-              <h3 className="text-xl font-semibold mb-4">Access Required</h3>
-              <p className="text-gray-600 mb-4">Please provide your email to create a custom dashboard based on your analysis.</p>
-              <input
-                type="email"
-                placeholder="Enter your email"
-                value={userEmail}
-                onChange={(e) => setUserEmail(e.target.value)}
-                className="w-full p-3 border rounded-lg mb-4"
-              />
+              {authStep === 'email' && (
+                <>
+                  <h3 className="text-xl font-semibold mb-4">Access Your Dashboard</h3>
+                  <p className="text-gray-600 mb-4">Enter your email to continue with dashboard creation</p>
+                  <input
+                    type="email"
+                    placeholder="Enter your email address"
+                    value={userEmail}
+                    onChange={(e) => setUserEmail(e.target.value)}
+                    className="w-full p-3 border rounded-lg mb-4"
+                    onKeyPress={(e) => e.key === 'Enter' && handleEmailSubmit()}
+                  />
+                  <div className="flex gap-3">
+                    <button onClick={() => setShowAuthModal(false)} className="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50">Cancel</button>
+                    <button onClick={handleEmailSubmit} disabled={!userEmail} className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50">Continue</button>
+                  </div>
+                </>
+              )}
+
+              {authStep === 'signin' && (
+                <>
+                  <h3 className="text-xl font-semibold mb-4">Welcome Back!</h3>
+                  <p className="text-gray-600 mb-4">Sign in to access your dashboard</p>
+                  <input type="email" value={userEmail} disabled className="w-full p-3 border rounded-lg mb-4 bg-gray-50" />
+                  <input type="password" placeholder="Enter your password" className="w-full p-3 border rounded-lg mb-4" />
+                  <div className="flex gap-3">
+                    <button onClick={() => setAuthStep('email')} className="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50">Back</button>
+                    <button onClick={createDashboard} className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">Sign In</button>
+                  </div>
+                </>
+              )}
+
+              {authStep === 'register' && (
+                <>
+                  <h3 className="text-xl font-semibold mb-4">Create Account</h3>
+                  <p className="text-gray-600 mb-4">Join InfinityStack to access your custom dashboard</p>
+                  <input type="email" value={userEmail} disabled className="w-full p-3 border rounded-lg mb-3 bg-gray-50" />
+                  <input type="text" placeholder="Full Name" className="w-full p-3 border rounded-lg mb-3" />
+                  <input type="password" placeholder="Create Password" className="w-full p-3 border rounded-lg mb-3" />
+                  
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Select Plan</label>
+                    <div className="space-y-2">
+                      {[
+                        { id: 'STARTER', name: 'Starter', price: '$29/month', features: ['Basic Analytics', '5 Dashboards'] },
+                        { id: 'PROFESSIONAL', name: 'Professional', price: '$99/month', features: ['Advanced Analytics', 'Unlimited Dashboards', 'API Access'] },
+                        { id: 'ENTERPRISE', name: 'Enterprise', price: '$299/month', features: ['Everything', 'Custom Integrations', 'Priority Support'] }
+                      ].map((tier) => (
+                        <label key={tier.id} className={`flex items-center p-3 border rounded-lg cursor-pointer ${selectedTier === tier.id ? 'border-primary-500 bg-primary-50' : 'border-gray-200'}`}>
+                          <input type="radio" name="tier" value={tier.id} checked={selectedTier === tier.id} onChange={(e) => setSelectedTier(e.target.value)} className="mr-3" />
+                          <div className="flex-1">
+                            <div className="flex justify-between items-center">
+                              <span className="font-medium">{tier.name}</span>
+                              <span className="text-primary-600 font-semibold">{tier.price}</span>
+                            </div>
+                            <p className="text-xs text-gray-500">{tier.features.join(', ')}</p>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-3">
+                    <button onClick={() => setAuthStep('email')} className="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50">Back</button>
+                    <button onClick={createDashboard} className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">Create Account</button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Access Request Modal */}
+        {showAccessRequestModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+              <h3 className="text-xl font-semibold mb-4">Request Access</h3>
+              <p className="text-gray-600 mb-4">Your account needs approval to access dashboard creation. Please select a subscription tier to request access.</p>
+              
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Select Subscription Tier</label>
+                <div className="space-y-2">
+                  {[
+                    { id: 'PROFESSIONAL', name: 'Professional', price: '$99/month' },
+                    { id: 'ENTERPRISE', name: 'Enterprise', price: '$299/month' }
+                  ].map((tier) => (
+                    <label key={tier.id} className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer ${selectedTier === tier.id ? 'border-primary-500 bg-primary-50' : 'border-gray-200'}`}>
+                      <div className="flex items-center">
+                        <input type="radio" name="accessTier" value={tier.id} checked={selectedTier === tier.id} onChange={(e) => setSelectedTier(e.target.value)} className="mr-3" />
+                        <span className="font-medium">{tier.name}</span>
+                      </div>
+                      <span className="text-primary-600 font-semibold">{tier.price}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              
               <div className="flex gap-3">
-                <button
-                  onClick={() => setShowAuthModal(false)}
-                  className="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => {
-                    setShowAuthModal(false)
-                    handleCreateDashboard()
-                  }}
-                  disabled={!userEmail}
-                  className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
-                >
-                  Continue
-                </button>
+                <button onClick={() => setShowAccessRequestModal(false)} className="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50">Cancel</button>
+                <button className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">Request Access</button>
               </div>
             </div>
           </div>
