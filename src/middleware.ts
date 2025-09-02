@@ -1,119 +1,51 @@
+import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { AuthService } from '@/lib/auth'
 
-export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
+export async function middleware(req: NextRequest) {
+  const res = NextResponse.next()
+  const supabase = createMiddlewareClient({ req, res })
 
-  // Skip middleware for public routes
-  if (isPublicRoute(pathname)) {
-    return NextResponse.next()
+  // Refresh session if expired
+  const { data: { session } } = await supabase.auth.getSession()
+
+  // Protected routes
+  const protectedRoutes = ['/admin', '/superadmin']
+  const isProtectedRoute = protectedRoutes.some(route => 
+    req.nextUrl.pathname.startsWith(route)
+  )
+
+  // Redirect to login if accessing protected route without session
+  if (isProtectedRoute && !session) {
+    return NextResponse.redirect(new URL('/login', req.url))
   }
 
-  // Check authentication for protected routes
-  if (isProtectedRoute(pathname)) {
-    const authResult = await checkAuthentication(request)
-    if (!authResult.authenticated) {
-      return redirectToLogin(request)
-    }
-
-    // Check role-based access
-    const accessResult = checkRoleAccess(pathname, authResult.user)
-    if (!accessResult.allowed) {
-      return new NextResponse('Forbidden', { status: 403 })
-    }
-
-    // Set tenant context for multi-tenant isolation
-    const response = NextResponse.next()
-    if (authResult.user?.tenantId) {
-      response.headers.set('x-tenant-id', authResult.user.tenantId)
-    }
-
-    return response
-  }
-
-  return NextResponse.next()
-}
-
-function isPublicRoute(pathname: string): boolean {
-  const publicRoutes = [
-    '/',
-    '/login',
-    '/website-analyzer',
-    '/api/website-analyzer/analyze'
-  ]
-  
-  return publicRoutes.some(route => pathname.startsWith(route))
-}
-
-function isProtectedRoute(pathname: string): boolean {
-  const protectedRoutes = [
-    '/admin',
-    '/superadmin',
-    '/api/admin',
-    '/api/superadmin'
-  ]
-  
-  return protectedRoutes.some(route => pathname.startsWith(route))
-}
-
-async function checkAuthentication(request: NextRequest) {
-  try {
-    // In a real implementation, you would verify JWT token from cookies/headers
-    const authHeader = request.headers.get('authorization')
-    const sessionCookie = request.cookies.get('session')
+  // Log security events
+  if (session) {
+    const userAgent = req.headers.get('user-agent') || ''
+    const ipAddress = req.ip || req.headers.get('x-forwarded-for') || ''
     
-    if (!authHeader && !sessionCookie) {
-      return { authenticated: false }
-    }
-
-    // Mock authentication check - replace with actual token verification
-    const user = await AuthService.getCurrentUser()
+    // Log suspicious activity (example: unusual user agent)
+    const isSuspicious = userAgent.includes('bot') || userAgent.includes('crawler')
     
-    return {
-      authenticated: !!user,
-      user: user?.profile
-    }
-  } catch (error) {
-    return { authenticated: false }
-  }
-}
-
-function checkRoleAccess(pathname: string, user: any) {
-  if (!user) {
-    return { allowed: false }
-  }
-
-  // Superadmin access
-  if (user.role === 'SUPERADMIN') {
-    return { allowed: true }
-  }
-
-  // Admin routes
-  if (pathname.startsWith('/admin') || pathname.startsWith('/api/admin')) {
-    return {
-      allowed: ['ORG_ADMIN', 'USER', 'STAFF'].includes(user.role)
+    if (isSuspicious) {
+      // Log to security events table
+      await supabase
+        .from('security_events')
+        .insert({
+          user_id: session.user.id,
+          event_type: 'suspicious_access',
+          ip_address: ipAddress,
+          user_agent: userAgent,
+          risk_level: 'medium',
+          metadata: { path: req.nextUrl.pathname }
+        })
     }
   }
 
-  // Superadmin routes
-  if (pathname.startsWith('/superadmin') || pathname.startsWith('/api/superadmin')) {
-    return {
-      allowed: user.role === 'SUPERADMIN'
-    }
-  }
-
-  return { allowed: true }
-}
-
-function redirectToLogin(request: NextRequest) {
-  const loginUrl = new URL('/login', request.url)
-  loginUrl.searchParams.set('redirect', request.nextUrl.pathname)
-  return NextResponse.redirect(loginUrl)
+  return res
 }
 
 export const config = {
-  matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|public).*)',
-  ],
+  matcher: ['/admin/:path*', '/superadmin/:path*']
 }

@@ -1,81 +1,97 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { AuthService } from '@/lib/auth'
-import { User } from '@/types'
+import { supabase, getUserProfile } from '@/lib/supabase'
 
-interface AuthState {
-  user: User | null
-  loading: boolean
-  error: string | null
+export interface AuthUser {
+  id: string
+  email: string
+  type: 'platform' | 'tenant'
+  role: string
+  tenantId?: string
+  permissions: string[]
 }
 
 export function useAuth() {
-  const [state, setState] = useState<AuthState>({
-    user: null,
-    loading: true,
-    error: null
-  })
+  const [user, setUser] = useState<AuthUser | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    checkAuth()
+    checkUser()
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        await loadUserProfile(session.user.email!)
+      } else {
+        setUser(null)
+      }
+      setLoading(false)
+    })
+
+    return () => subscription.unsubscribe()
   }, [])
 
-  const checkAuth = async () => {
-    try {
-      const result = await AuthService.getCurrentUser()
-      setState({
-        user: result?.profile || null,
-        loading: false,
-        error: null
-      })
-    } catch (error) {
-      setState({
-        user: null,
-        loading: false,
-        error: error instanceof Error ? error.message : 'Authentication failed'
-      })
+  const checkUser = async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session?.user) {
+      await loadUserProfile(session.user.email!)
+    }
+    setLoading(false)
+  }
+
+  const loadUserProfile = async (email: string) => {
+    const profile = await getUserProfile(email)
+    if (profile) {
+      const authUser: AuthUser = {
+        id: profile.user.id,
+        email: profile.user.email,
+        type: profile.type,
+        role: profile.user.role || 'user',
+        tenantId: profile.type === 'tenant' ? profile.user.tenant_id : undefined,
+        permissions: getPermissions(profile.type, profile.user.role)
+      }
+      setUser(authUser)
     }
   }
 
-  const signIn = async (email: string, password: string) => {
-    setState(prev => ({ ...prev, loading: true, error: null }))
-    try {
-      const { profile } = await AuthService.signIn(email, password)
-      setState({
-        user: profile,
-        loading: false,
-        error: null
-      })
-      return { success: true }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Sign in failed'
-      setState(prev => ({
-        ...prev,
-        loading: false,
-        error: errorMessage
-      }))
-      return { success: false, error: errorMessage }
+  const getPermissions = (type: string, role: string): string[] => {
+    if (type === 'platform') {
+      return ['manage_tenants', 'manage_users', 'view_analytics', 'system_settings']
     }
+    
+    if (type === 'tenant') {
+      switch (role) {
+        case 'admin':
+          return ['manage_users', 'manage_products', 'manage_orders', 'view_analytics']
+        case 'manager':
+          return ['manage_products', 'manage_orders', 'view_reports']
+        case 'staff':
+          return ['view_products', 'create_orders']
+        default:
+          return []
+      }
+    }
+    
+    return []
   }
 
-  const signOut = async () => {
-    try {
-      await AuthService.signOut()
-      setState({
-        user: null,
-        loading: false,
-        error: null
-      })
-    } catch (error) {
-      console.error('Sign out error:', error)
-    }
+  const hasPermission = (permission: string): boolean => {
+    return user?.permissions.includes(permission) || false
+  }
+
+  const isSuperAdmin = (): boolean => {
+    return user?.type === 'platform'
+  }
+
+  const isAdmin = (): boolean => {
+    return user?.type === 'tenant' && user?.role === 'admin'
   }
 
   return {
-    ...state,
-    signIn,
-    signOut,
-    refresh: checkAuth
+    user,
+    loading,
+    hasPermission,
+    isSuperAdmin,
+    isAdmin
   }
 }

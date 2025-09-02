@@ -1,256 +1,61 @@
-'use client'
+import ProtectedRoute from '@/components/auth/ProtectedRoute'
+import { useAuth } from '@/hooks/useAuth'
 
-import { useEffect, useState, Suspense } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { 
-  BarChart3, 
-  Users, 
-  ShoppingCart, 
-  DollarSign, 
-  TrendingUp, 
-  AlertCircle,
-  Package,
-  MapPin,
-  Calendar,
-  Settings,
-  ExternalLink
-} from 'lucide-react'
-import WebsiteAnalyzerWidget from '@/components/admin/WebsiteAnalyzerWidget'
-
-function AdminDashboardContent() {
-  const searchParams = useSearchParams()
-  const router = useRouter()
-  const [showDashboardCreated, setShowDashboardCreated] = useState(false)
-  
-  useEffect(() => {
-    const dashboardId = searchParams.get('dashboard')
-    if (dashboardId) {
-      setShowDashboardCreated(true)
-      setTimeout(() => {
-        router.push(`/dashboard/${dashboardId}`)
-      }, 3000)
-    }
-  }, [searchParams, router])
-
-  const stats = {
-    revenue: '$124,500',
-    orders: '1,247',
-    customers: '8,432',
-    products: '342'
-  }
-
-  const recentOrders = [
-    { id: '1001', customer: 'John Doe', amount: '$89.99', status: 'completed' },
-    { id: '1002', customer: 'Jane Smith', amount: '$156.50', status: 'processing' },
-    { id: '1003', customer: 'Mike Johnson', amount: '$67.25', status: 'pending' },
-  ]
-
-  const alerts = [
-    { type: 'warning', message: 'Low stock alert: iPhone Cases (5 remaining)' },
-    { type: 'info', message: 'New customer registration: Sarah Wilson' },
-    { type: 'success', message: 'Monthly sales target achieved!' },
-  ]
-
+function AdminDashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center space-x-4">
-              <Link href="/" className="text-2xl font-bold text-primary-600">
-                InfinityStack
-              </Link>
-              <span className="text-gray-400">|</span>
-              <h1 className="text-xl font-semibold text-gray-900">Admin Dashboard</h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Link href="/admin/settings" className="text-gray-600 hover:text-gray-900">
-                <Settings className="h-6 w-6" />
-              </Link>
-              <div className="h-8 w-8 bg-primary-600 rounded-full flex items-center justify-center">
-                <span className="text-white text-sm font-medium">A</span>
-              </div>
-            </div>
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">Admin Dashboard</h1>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h3 className="text-lg font-semibold text-gray-900">Total Orders</h3>
+            <p className="text-3xl font-bold text-blue-600">1,234</p>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h3 className="text-lg font-semibold text-gray-900">Revenue</h3>
+            <p className="text-3xl font-bold text-green-600">$45,678</p>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h3 className="text-lg font-semibold text-gray-900">Customers</h3>
+            <p className="text-3xl font-bold text-purple-600">567</p>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h3 className="text-lg font-semibold text-gray-900">Products</h3>
+            <p className="text-3xl font-bold text-orange-600">89</p>
           </div>
         </div>
-      </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {showDashboardCreated && (
-          <div className="mb-8 bg-green-50 border border-green-200 rounded-lg p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <BarChart3 className="h-8 w-8 text-green-600" />
-                <div className="ml-4">
-                  <h3 className="text-lg font-semibold text-green-900">Custom Dashboard Created!</h3>
-                  <p className="text-green-700">Redirecting to your personalized dashboard...</p>
-                </div>
-              </div>
-              <button 
-                onClick={() => router.push(`/dashboard/${searchParams.get('dashboard')}`)} 
-                className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
-              >
-                View Dashboard <ExternalLink className="w-4 h-4" />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+            <div className="space-y-2">
+              <button className="w-full text-left p-3 bg-blue-50 hover:bg-blue-100 rounded-lg">
+                Add New Product
+              </button>
+              <button className="w-full text-left p-3 bg-green-50 hover:bg-green-100 rounded-lg">
+                Process Orders
+              </button>
+              <button className="w-full text-left p-3 bg-purple-50 hover:bg-purple-100 rounded-lg">
+                Manage Customers
               </button>
             </div>
           </div>
-        )}
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="card">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.revenue}</p>
-                <p className="text-sm text-green-600">+12.5% from last month</p>
-              </div>
-              <DollarSign className="h-8 w-8 text-primary-600" />
-            </div>
-          </div>
 
-          <div className="card">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Orders</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.orders}</p>
-                <p className="text-sm text-green-600">+8.2% from last month</p>
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">New order #1234</span>
+                <span className="text-sm text-gray-500">2 min ago</span>
               </div>
-              <ShoppingCart className="h-8 w-8 text-primary-600" />
-            </div>
-          </div>
-
-          <div className="card">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Customers</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.customers}</p>
-                <p className="text-sm text-green-600">+15.3% from last month</p>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Customer registered</span>
+                <span className="text-sm text-gray-500">5 min ago</span>
               </div>
-              <Users className="h-8 w-8 text-primary-600" />
-            </div>
-          </div>
-
-          <div className="card">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Products</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.products}</p>
-                <p className="text-sm text-blue-600">+23 new this month</p>
-              </div>
-              <Package className="h-8 w-8 text-primary-600" />
-            </div>
-          </div>
-        </div>
-
-        {/* Main Content Grid */}
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Left Column */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Quick Actions */}
-            <div className="card">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <Link href="/admin/products" className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                  <Package className="h-8 w-8 text-primary-600 mb-2" />
-                  <span className="text-sm font-medium text-gray-900">Products</span>
-                </Link>
-                
-                <Link href="/admin/orders" className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                  <ShoppingCart className="h-8 w-8 text-primary-600 mb-2" />
-                  <span className="text-sm font-medium text-gray-900">Orders</span>
-                </Link>
-                
-                <Link href="/admin/customers" className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                  <Users className="h-8 w-8 text-primary-600 mb-2" />
-                  <span className="text-sm font-medium text-gray-900">Customers</span>
-                </Link>
-                
-                <Link href="/website-analyzer" className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                  <BarChart3 className="h-8 w-8 text-primary-600 mb-2" />
-                  <span className="text-sm font-medium text-gray-900">Website Analyzer</span>
-                </Link>
-              </div>
-            </div>
-
-            {/* Recent Orders */}
-            <div className="card">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Recent Orders</h3>
-                <Link href="/admin/orders" className="text-primary-600 hover:text-primary-700 text-sm font-medium">
-                  View all
-                </Link>
-              </div>
-              <div className="space-y-4">
-                {recentOrders.map((order) => (
-                  <div key={order.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                    <div>
-                      <p className="font-medium text-gray-900">Order #{order.id}</p>
-                      <p className="text-sm text-gray-600">{order.customer}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-medium text-gray-900">{order.amount}</p>
-                      <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                        order.status === 'completed' ? 'bg-green-100 text-green-800' :
-                        order.status === 'processing' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {order.status}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column */}
-          <div className="space-y-8">
-            {/* Alerts */}
-            <div className="card">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Alerts & Notifications</h3>
-              <div className="space-y-3">
-                {alerts.map((alert, index) => (
-                  <div key={index} className={`flex items-start space-x-3 p-3 rounded-lg ${
-                    alert.type === 'warning' ? 'bg-yellow-50 border border-yellow-200' :
-                    alert.type === 'success' ? 'bg-green-50 border border-green-200' :
-                    'bg-blue-50 border border-blue-200'
-                  }`}>
-                    <AlertCircle className={`h-5 w-5 mt-0.5 ${
-                      alert.type === 'warning' ? 'text-yellow-600' :
-                      alert.type === 'success' ? 'text-green-600' :
-                      'text-blue-600'
-                    }`} />
-                    <p className="text-sm text-gray-700">{alert.message}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Website Analyzer Widget */}
-            <WebsiteAnalyzerWidget />
-
-            {/* Quick Stats */}
-            <div className="card">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Today's Summary</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">New Orders</span>
-                  <span className="font-medium text-gray-900">23</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Revenue</span>
-                  <span className="font-medium text-gray-900">$2,847</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">New Customers</span>
-                  <span className="font-medium text-gray-900">12</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Conversion Rate</span>
-                  <span className="font-medium text-green-600">3.2%</span>
-                </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Product updated</span>
+                <span className="text-sm text-gray-500">10 min ago</span>
               </div>
             </div>
           </div>
@@ -260,10 +65,10 @@ function AdminDashboardContent() {
   )
 }
 
-export default function AdminDashboard() {
+export default function AdminPage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
-      <AdminDashboardContent />
-    </Suspense>
+    <ProtectedRoute requireAdmin={true}>
+      <AdminDashboard />
+    </ProtectedRoute>
   )
 }

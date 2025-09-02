@@ -1,110 +1,49 @@
-import { createClient as createSupabaseClient, SupabaseClient } from '@supabase/supabase-js'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-let supabaseInstance: SupabaseClient | null = null
+export const supabase = createClientComponentClient()
 
-export function createClient(): SupabaseClient {
-  if (!supabaseInstance) {
-    supabaseInstance = createSupabaseClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-      },
-      db: {
-        schema: 'public',
-      },
-      global: {
-        headers: { 'x-application-name': 'infinity-stack' },
-      },
-    })
-  }
-  return supabaseInstance
+// Server-side client with service role
+export const supabaseAdmin = createClient(
+  supabaseUrl,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
+
+// Set tenant context for RLS
+export const setTenantContext = async (tenantId: string) => {
+  await supabase.rpc('set_config', {
+    setting_name: 'app.current_tenant_id',
+    setting_value: tenantId,
+    is_local: true
+  })
 }
 
-export const supabase = createClient()
+// Get user profile (platform or tenant)
+export const getUserProfile = async (email: string) => {
+  // Check if platform user
+  const { data: platformUser } = await supabase
+    .from('platform_users')
+    .select('*')
+    .eq('email', email)
+    .single()
 
-// Database helper functions
-export const db = {
-  // Users
-  async getUser(id: string) {
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', id)
-      .single()
-    
-    if (error) throw error
-    return data
-  },
-
-  async createUser(user: any) {
-    const { data, error } = await supabase
-      .from('users')
-      .insert(user)
-      .select()
-      .single()
-    
-    if (error) throw error
-    return data
-  },
-
-  // Tenants
-  async getTenant(id: string) {
-    const { data, error } = await supabase
-      .from('tenants')
-      .select('*')
-      .eq('id', id)
-      .single()
-    
-    if (error) throw error
-    return data
-  },
-
-  async createTenant(tenant: any) {
-    const { data, error } = await supabase
-      .from('tenants')
-      .insert(tenant)
-      .select()
-      .single()
-    
-    if (error) throw error
-    return data
-  },
-
-  // Website Analysis
-  async createAnalysis(analysis: any) {
-    const { data, error } = await supabase
-      .from('website_analyses')
-      .insert(analysis)
-      .select()
-      .single()
-    
-    if (error) throw error
-    return data
-  },
-
-  async updateAnalysis(id: string, updates: any) {
-    const { data, error } = await supabase
-      .from('website_analyses')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single()
-    
-    if (error) throw error
-    return data
-  },
-
-  async getAnalyses(tenantId: string) {
-    const { data, error } = await supabase
-      .from('website_analyses')
-      .select('*')
-      .eq('tenant_id', tenantId)
-      .order('created_at', { ascending: false })
-    
-    if (error) throw error
-    return data
+  if (platformUser) {
+    return { type: 'platform', user: platformUser }
   }
+
+  // Check if tenant user
+  const { data: tenantUser } = await supabase
+    .from('users')
+    .select('*, tenants(*)')
+    .eq('email', email)
+    .single()
+
+  if (tenantUser) {
+    return { type: 'tenant', user: tenantUser }
+  }
+
+  return null
 }
